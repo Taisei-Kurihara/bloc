@@ -350,9 +350,9 @@ GameObject:
   m_Component:
   - component: {fileID: 1045772263}
   - component: {fileID: 1045772266}
-  - component: {fileID: 1045772267}
   - component: {fileID: 1045772269}
   - component: {fileID: 1045772268}
+  - component: {fileID: 1045772270}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -430,18 +430,6 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
---- !u!114 &1045772267
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1045772262}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a271208c2a214e7419c89877eaa0bb46, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!68 &1045772268
 EdgeCollider2D:
   m_ObjectHideFlags: 0
@@ -514,7 +502,19 @@ Rigidbody2D:
   m_Interpolate: 0
   m_SleepingMode: 1
   m_CollisionDetection: 0
-  m_Constraints: 4
+  m_Constraints: 0
+--- !u!114 &1045772270
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1045772262}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7ff122dbcd43f6142b347daf4d2fd758, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &2073596821
 GameObject:
   m_ObjectHideFlags: 0
