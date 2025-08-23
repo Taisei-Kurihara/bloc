@@ -22,9 +22,9 @@ public class ShapeModel : ModelBase , IShape
 
     Transform offsetobj;
 
-    SpriteRenderer spriteRenderer;
+    public SpriteRenderer spriteRenderer { get; private set; }
 
-    EdgeCollider2D edgeCollider;
+    public EdgeCollider2D edgeCollider { get; private set; }
 
     public Shape shape { get; private set; }
 
@@ -33,19 +33,7 @@ public class ShapeModel : ModelBase , IShape
         shape = new Shape(N_Angular);
         SetAll();
 
-        //Observable.EveryUpdate().Subscribe(_ =>
-        //{
-        //    Debug.Log("N_Angular:" + N_Angular + "/ofs:" + shape.ShapeCase(N_Angular).y);
-        //    presenter.transform.position = Vector2.zero;
-        //    SetAll(N_Angular);
-        //    N_Angular++;
-        //}).AddTo(presenter);
-
-        Observable.EveryUpdate().Subscribe(_ =>
-        {
-            // デバッグ用のラインを描画
-            shape.DebugeLine(spriteRenderer.transform,presenter.transform);
-        }).AddTo(presenter);
+        DebugeLineUpdate();
     }
 
     void SetAll(int An)
@@ -92,6 +80,28 @@ public class ShapeModel : ModelBase , IShape
         edgeCollider.points = shape.ColliderPoints;
     }
 
+    #region debug
+    public void DebugeN_AngularUpdate()
+    {
+        Observable.EveryUpdate().Subscribe(_ =>
+        {
+            Debug.Log("N_Angular:" + N_Angular + "/ofs:" + shape.ShapeCase(N_Angular).y);
+            presenter.transform.position = Vector2.zero;
+            SetAll(N_Angular);
+            N_Angular++;
+        }).AddTo(presenter);
+    }
+
+    public void DebugeLineUpdate()
+    {
+        Observable.EveryUpdate().Subscribe(_ =>
+        {
+            // デバッグ用のラインを描画
+            shape.DebugeLine(spriteRenderer.transform, presenter.transform);
+        }).AddTo(presenter);
+    }
+
+    #endregion
 
 }
 
@@ -337,9 +347,6 @@ public class Shape
         float y = -0.00670f + 0.05742f / n + 2.1377f / (n * n);
         return Mathf.Max(0f, y);
     }
-
-
-
 
     public void DebugeLine(Transform transform,Transform pre)
     {
