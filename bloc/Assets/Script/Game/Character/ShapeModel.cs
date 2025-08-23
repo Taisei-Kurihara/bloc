@@ -1,18 +1,26 @@
 using System.Collections.Generic;
 using R3;
 using R3.Triggers;
+using UnityEditor.Build.Pipeline;
 using UnityEngine;
 
 public class ShapeModel : ModelBase , IShape
 {
-    public ShapeModel(PresenterBase presenter,int An = 4) : base(presenter)
+    public ShapeModel(PresenterBase presenter, SpriteRenderer spriteRenderer, EdgeCollider2D edgeCollider,int An = 4) : base(presenter)
     {
         this.presenter = presenter;
         N_Angular = An;
+
+        this.spriteRenderer = spriteRenderer;
+        this.edgeCollider = edgeCollider;
+
+        offsetobj = edgeCollider.transform;
     }
 
     [SerializeField]
     int N_Angular = 4;
+
+    Transform offsetobj;
 
     SpriteRenderer spriteRenderer;
 
@@ -22,31 +30,40 @@ public class ShapeModel : ModelBase , IShape
 
     public override void Init()
     {
-        spriteRenderer = presenter.GetComponent<SpriteRenderer>();
-        edgeCollider = presenter.GetComponent<EdgeCollider2D>();
         shape = new Shape(N_Angular);
         SetAll();
 
-        presenter.GetComponent<Collider2D>().OnCollisionEnter2DAsObservable().Subscribe(collision =>
+        //Observable.EveryUpdate().Subscribe(_ =>
+        //{
+        //    Debug.Log("N_Angular:" + N_Angular + "/ofs:" + shape.ShapeCase(N_Angular).y);
+        //    presenter.transform.position = Vector2.zero;
+        //    SetAll(N_Angular);
+        //    N_Angular++;
+        //}).AddTo(presenter);
+
+        Observable.EveryUpdate().Subscribe(_ =>
         {
-            Debug.Log("N_Angular:" + N_Angular);
-            presenter.transform.position = Vector2.zero;
-            shape = new Shape(N_Angular);
-            SetAll();
-            N_Angular++;
+            // デバッグ用のラインを描画
+            shape.DebugeLine(spriteRenderer.transform,presenter.transform);
         }).AddTo(presenter);
     }
 
     void SetAll(int An)
     {
-        shape.ShapeSetNAnglar(An, true);
+        shape = new Shape(N_Angular);
         SetAll();
     }
     void SetAll()
     {
+
+
+        // 表示・当たり判定を更新
         SetSprite();
         SetColl();
+
+        UnityEditor.EditorApplication.isPaused = true;
     }
+
 
     void SetSprite(int An)
     {
@@ -56,8 +73,11 @@ public class ShapeModel : ModelBase , IShape
 
     void SetSprite()
     {
+        spriteRenderer.transform.localPosition = shape.ShapeCase(shape.length);
+
         spriteRenderer.sprite = shape.sprite;
         spriteRenderer.size = new Vector2(100, 100);
+
     }
 
 
@@ -107,14 +127,16 @@ public class Shape
         flatDownOffset = 0f;
         if (flatDown)
         {
-            int diff = N_Angular - 2;
-
-            bool treatAsOdd = (N_Angular % 2 == 0);
-
-            flatDownOffset = treatAsOdd
-                ? ((diff > 3 && diff % 4 == 0)) ? 0 : Mathf.PI / N_Angular      // 偶数扱い → 辺が下向き
-                : Mathf.PI / 2f;              // 奇数扱い → 頂点が下向き
+            if (N_Angular % 2 != 0)
+            {
+                flatDownOffset = Mathf.PI / 2f; // 奇数：頂点が下向き
+            }
+            else
+            {
+                flatDownOffset = (N_Angular - 2 > 3 && (N_Angular - 2) % 4 == 0) ? 0f : Mathf.PI / N_Angular;
+            }
         }
+
 
         for (int i = 0; i < N_Angular; i++)
         {
@@ -219,6 +241,7 @@ public class Shape
     public Sprite sprite { get; private set; }
 
     public Vector2[] ColliderPoints { get; private set; }
+
     #endregion
 
 
@@ -289,6 +312,63 @@ public class Shape
 
         return ofs - Vector2.one * 0.5f; // 中央を基準にするためオフセットを調整
     }
+
+    // 特定の形状だけ位置をずらす用のオフセット
+    public Vector3 ShapeCase(int N_Angular)
+    {
+        Vector2 ofs = Vector2.zero;
+        if (N_Angular % 2 == 1)
+        {
+            ofs.y = OffsetYQuick(N_Angular);
+        }
+
+
+        return ofs;
+    }
+    float OffsetYQuick(int n)
+    {
+        // 手軽な早見式
+        return 2.25f / (n * n);
+    }
+
+    float OffsetYFitted(int n)
+    {
+        // 近似フィット版（提示データに合わせて調整）
+        float y = -0.00670f + 0.05742f / n + 2.1377f / (n * n);
+        return Mathf.Max(0f, y);
+    }
+
+
+
+
+    public void DebugeLine(Transform transform,Transform pre)
+    {
+        Vector3 A1 = ColliderPoints[0];
+        Vector3 B2 = ColliderPoints[0];
+
+        // ポリゴンの辺を描画
+        for (int i = 0; i < length; i++)
+        {
+            A1 = ColliderPoints[i];
+            B2 = ColliderPoints[(i + 1) % length];
+
+            Debug.DrawLine(
+                transform.TransformPoint(A1), // ローカル→ワールド
+                transform.TransformPoint(B2),
+                Color.red,
+                0f
+            );
+
+            A1 = ColliderPoints[i] + (Vector2)ShapeCase(length);
+            Debug.DrawLine(
+                transform.TransformPoint(-ShapeCase(length)),
+                pre.TransformPoint(A1 * 1.3f), // 拡大方向も回転反映
+                Color.blue,
+                0f
+            );
+        }
+    }
+
 
     #endregion
 
