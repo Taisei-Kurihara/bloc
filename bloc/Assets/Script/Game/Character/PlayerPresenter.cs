@@ -9,7 +9,7 @@ namespace InGame
 {
     public class PlayerPresenter : PresenterBase, IPresenter
     {
-        object IPresenter.View => new ShapeModel(this);
+        object IPresenter.View => new View();
 
         IMove Move { get; set; }
 
@@ -17,10 +17,13 @@ namespace InGame
 
         InputSystem_Actions inputActions;
 
+        [SerializeField]
+        GameObject Point;
+
         void Start()
         {
             inputActions = InputSystemActionsManager.Instance().GetInputSystem_Actions();
-            Shape = new ShapeModel(this,3);
+            Shape = new ShapeModel(this, Point.GetComponent<SpriteRenderer>(), Point.GetComponent<EdgeCollider2D>(),3);
             Shape.Init();
 
             Move = new RotateMove(this, Shape);
