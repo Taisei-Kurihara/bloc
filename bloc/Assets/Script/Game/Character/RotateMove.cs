@@ -5,6 +5,8 @@ using R3;
 using UnityEngine;
 using UnityEngine.Rendering;
 using InGame.Character;
+using static UnityEngine.Rendering.ProbeAdjustmentVolume;
+using R3.Triggers;
 
 public class RotateMove : ModelBase, IMove, ICameraFollowTarget
 {
@@ -29,7 +31,9 @@ public class RotateMove : ModelBase, IMove, ICameraFollowTarget
     [SerializeField]
     private float GravityPower = -9.8f;
     private Vector3 move;
-    private int Count = 0;
+
+    int maxJumpCount = 1; // 最大ジャンプ回数
+    ReactiveProperty<int> Count = new ReactiveProperty<int>(0);
 
 
     public override void Init()
@@ -59,10 +63,12 @@ public class RotateMove : ModelBase, IMove, ICameraFollowTarget
         //移動処理
         Dismove = Observable.EveryUpdate().Subscribe(_ =>
         {
+            // === 移動処理 ===
             var vec = action.Player.Move.ReadValue<Vector2>();
             int vecX = (int)(new Vector2(vec.x, 0).normalized).x;
 
-            
+            lastX = (vecX != 0) ? vecX : (isGrounded.Value) ? 0 : lastX;
+
             if (vecX != 0)
             {
                 move = new Vector3(vec.x * Speed, 0, 0);
@@ -83,7 +89,8 @@ public class RotateMove : ModelBase, IMove, ICameraFollowTarget
 
 
             // === 回転処理 ===
-            GroundCheck();
+            if (isGrounded.Value && vecX != 0) { isGrounded.Value = GroundCheck(shape.edgeCollider.points[0].magnitude); }
+            
 
             if (isGrounded.Value && vecX != 0)
             {
@@ -120,27 +127,67 @@ public class RotateMove : ModelBase, IMove, ICameraFollowTarget
 
         Observable.EveryUpdate()
             .Where(_ => action.Player.Jump.WasPressedThisFrame())//ジャンプを押したとき
-            .Where(_ => Count < 1)
+            .Where(_ => Count.Value < maxJumpCount)
             .Subscribe(_ =>
             {
-                Count++;//カウント回数を増やす。
+                Count.Value++;//カウント回数を増やす。
                 move = Vector3.zero;
                 move += Vector3.up * JumpPower;
                 rb.linearVelocity = move;
             }).AddTo(presenter);
     }
+
+
+    #region
+    ReactiveProperty<bool> Ischeckground = new ReactiveProperty<bool>(false);
+    ReactiveProperty<bool> isGrounded = new ReactiveProperty<bool>(false);
+    ReactiveProperty<bool> isGroundedJump = new ReactiveProperty<bool>(false);
+    private Vector2 groundNormal = Vector2.up;
+    private float alignSpeed = 5f; // 補間速度
     /// <summary>
     /// 地面の判定
     /// </summary>
     public void CheckGround()
     {
-        isGrounded
-            .Where(isGrounded => isGrounded) // 地面にいるときのみジャンプ可能
-            .Subscribe(_ =>
+        shape.edgeCollider
+            .OnCollisionStay2DAsObservable()
+            .Where(collider => collider.gameObject.layer == LayerMask.NameToLayer("Default")) // 地面のレイヤーを指定
+            .Subscribe(collider =>
             {
-                Count = 0; // ジャンプしたらカウントをリセット
+                Count.Value = 0;
+                isGrounded.Value = true;
+                groundNormal = collider.transform.up; // 地面の法線を取得
             }).AddTo(presenter);
     }
+
+    /// <summary>
+    /// 地面判定 + 法線取得
+    /// </summary>
+    private bool GroundCheck(float length = 1.1f)
+    {
+        float rayLength = length; // コライダーの大きさに応じて調整
+        RaycastHit2D hit = Physics2D.Raycast(
+            presenter.transform.position,
+            Vector2.down,
+            rayLength,
+            LayerMask.GetMask("Default")
+        );
+
+        // デバッグ用のRayを描画
+        Debug.DrawRay(presenter.transform.position, Vector2.down * rayLength, Color.red);
+
+        if (hit.collider != null)
+        {
+            Debug.Log("Ground hit: " + hit.collider.name);
+            groundNormal = hit.normal; // 地面の法線を取得
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+    #endregion
 
     public void Dispose()
     {
@@ -156,38 +203,10 @@ public class RotateMove : ModelBase, IMove, ICameraFollowTarget
     }
 
 
-    ReactiveProperty<bool> isGrounded = new ReactiveProperty<bool>(false);
-    private Vector2 groundNormal = Vector2.up;
-    private float alignSpeed = 5f; // 補間速度
+    
 
 
-    /// <summary>
-    /// 地面判定 + 法線取得
-    /// </summary>
-    private void GroundCheck()
-    {
-        float rayLength = 1.1f; // コライダーの大きさに応じて調整
-        RaycastHit2D hit = Physics2D.Raycast(
-            presenter.transform.position,
-            Vector2.down,
-            rayLength,
-            LayerMask.GetMask("Default")
-        );
-
-        // デバッグ用のRayを描画
-        Debug.DrawRay(presenter.transform.position, Vector2.down * rayLength, Color.red);
-
-        if (hit.collider != null)
-        {
-            Debug.Log("Ground hit: " + hit.collider.name);
-            isGrounded.Value = true;
-            groundNormal = hit.normal; // 地面の法線を取得
-        }
-        else
-        {
-            isGrounded.Value = false;
-        }
-    }
+    
 
     /// <summary>
     /// 地面と平行になるように回転を補正（補間版）
