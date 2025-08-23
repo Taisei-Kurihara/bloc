@@ -149,6 +149,11 @@ public class RotateMove : ModelBase, IMove, ICameraFollowTarget
     /// </summary>
     public void CheckGround()
     {
+        Observable.EveryUpdate()
+            .Subscribe(_ =>
+            {
+                GroundCheck(1.5f);
+            }).AddTo(presenter);
         shape.edgeCollider
             .OnCollisionStay2DAsObservable()
             .Where(collider => collider.gameObject.layer == LayerMask.NameToLayer("Default")) // 地面のレイヤーを指定
@@ -156,36 +161,55 @@ public class RotateMove : ModelBase, IMove, ICameraFollowTarget
             {
                 Count.Value = 0;
                 isGrounded.Value = true;
-                groundNormal = collider.transform.up; // 地面の法線を取得
             }).AddTo(presenter);
     }
 
     /// <summary>
     /// 地面判定 + 法線取得
     /// </summary>
+    private Vector2[] groundNormals = new Vector2[4]; // 左・中央・右の3本分
+
+    /// <summary>
+    /// 地面判定 + 法線取得（中央・左右）
+    /// </summary>
     private bool GroundCheck(float length = 1.1f)
     {
-        float rayLength = length; // コライダーの大きさに応じて調整
-        RaycastHit2D hit = Physics2D.Raycast(
-            presenter.transform.position,
-            Vector2.down,
-            rayLength,
-            LayerMask.GetMask("Default")
-        );
+        bool isHit = false;
 
-        // デバッグ用のRayを描画
-        Debug.DrawRay(presenter.transform.position, Vector2.down * rayLength, Color.red);
+        // 左・中央・右にオフセットを付ける
+        Vector3[] offsets = new Vector3[]
+        {
+        Vector3.left * 0.5f,
+        Vector3.zero,
+        Vector3.right * 0.5f
+        };
 
-        if (hit.collider != null)
+        for (int i = 0; i < offsets.Length; i++)
         {
-            Debug.Log("Ground hit: " + hit.collider.name);
-            groundNormal = hit.normal; // 地面の法線を取得
-            return true;
+            Vector3 origin = presenter.transform.position + offsets[i];
+            RaycastHit2D hit = Physics2D.Raycast(
+                origin,
+                Vector2.down,
+                length,
+                LayerMask.GetMask("Default")
+            );
+
+            // デバッグ用のRayを描画
+            Debug.DrawRay(origin, Vector2.down * length, Color.red);
+
+            if (hit.collider != null)
+            {
+                groundNormals[i] = hit.normal; // 法線を保存
+                isHit = true;
+                Debug.Log($"Ground hit[{i}]: {hit.collider.name}, normal={hit.normal}");
+            }
+            else
+            {
+                groundNormals[i] = Vector2.up; // ヒットしなければデフォルトの上方向
+            }
         }
-        else
-        {
-            return false;
-        }
+
+        return isHit;
     }
     #endregion
 
