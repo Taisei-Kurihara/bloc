@@ -7,13 +7,13 @@ using UnityEngine.SceneManagement;
 using static UnityEngine.Rendering.ProbeAdjustmentVolume;
 namespace InGame
 {
-    public class PlayerPresenter : PresenterBase, IPresenter
+    public class Presenter_Player : PresenterBase, Presenter_interface
     {
-        object IPresenter.View => new View();
+        object Presenter_interface.View => new View();
 
-        IMove Move { get; set; }
+        Move_interface Move { get; set; }
 
-        new IShape Shape { get; set; }
+        new Shape_interface Shape { get; set; }
 
         InputSystem_Actions inputActions;
 
@@ -26,7 +26,7 @@ namespace InGame
             Shape = new ShapeModel(this, Point.GetComponent<SpriteRenderer>(), Point.GetComponent<EdgeCollider2D>(),3);
             Shape.Init();
 
-            Move = new RotateMove(this, Shape);
+            Move = new Move_Rotate_OnGrounded(this, Shape);
             Move.Init();
             Observable.EveryUpdate().Subscribe(_ => { UpdateController(); }).AddTo(this);
 
