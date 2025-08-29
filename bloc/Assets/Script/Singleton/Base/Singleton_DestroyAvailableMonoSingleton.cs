@@ -5,7 +5,7 @@
 /// 破壊可能シングルトン
 /// </summary>
 /// <typeparam name="T"></typeparam>
-public class DestroyAvailableMonoSingleton<T> : MonoBehaviour where T : DestroyAvailableMonoSingleton<T>
+public class Singleton_DestroyAvailableMonoSingleton<T> : MonoBehaviour where T : Singleton_DestroyAvailableMonoSingleton<T>
 {
     /// <summary>
     /// 静的な変数

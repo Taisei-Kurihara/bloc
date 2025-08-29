@@ -3,7 +3,7 @@
 
 namespace Common
 {
-    public class SingletonMonoBehaviourBase<T> : MonoBehaviour where T : SingletonMonoBehaviourBase<T>
+    public class Singleton_MonoBehaviourBase<T> : MonoBehaviour where T : Singleton_MonoBehaviourBase<T>
     {
         protected static T instance;
 
