@@ -34,7 +34,7 @@ public enum ContactType
 public abstract class Contact_abstract : MonoBehaviour
 {
     [SerializeField]
-    AudioClip contactSound;
+    protected AudioClip contactSound;
 
     [SerializeField]
     protected ContactType[] ResponseTargets;  // •¡”Œ`‚É•ÏX

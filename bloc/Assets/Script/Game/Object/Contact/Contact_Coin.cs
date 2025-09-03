@@ -9,6 +9,7 @@ public class Contact_Coin : Contact_abstract
         // コインを取得したときの処理
         Debug.Log("Coin collected!");
         Score.Instance().AddCoin(coins); // スコアを増やす
+        AudioManager.Instance().PlayOneShot(contactSound); // 効果音を再生
         Destroy(gameObject); // コインオブジェクトを削除
     }
 }
