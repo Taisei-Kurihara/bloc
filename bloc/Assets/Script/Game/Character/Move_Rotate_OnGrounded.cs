@@ -103,12 +103,12 @@ public class Move_Rotate_OnGrounded : ModelBase, Move_interface, Camera_FollowTa
 
                 if (slopeAngle > 40f)
                 {
-                    Debug.Log($"Slope Angle: {slopeAngle}, Is Sharp Corner: {isSharpCorner}, slow");
+                    //Debug.Log($"Slope Angle: {slopeAngle}, Is Sharp Corner: {isSharpCorner}, slow");
                     move = new Vector3(vecX * (Speed / 10), rb.linearVelocity.y, 0);
                 }
                 if (ShouldCheckNormal.Value && !isSharpCorner) // 法線追従するか判定
                 {
-                    Debug.Log($"Slope Angle: {slopeAngle}, Is Sharp Corner: {isSharpCorner}, normal");
+                    //Debug.Log($"Slope Angle: {slopeAngle}, Is Sharp Corner: {isSharpCorner}, normal");
                     // 法線追従
                     Vector2 normal = groundNormals[1];
                     Vector3 desiredMove = new Vector3(vecX, 0, 0) * Speed;
@@ -117,7 +117,7 @@ public class Move_Rotate_OnGrounded : ModelBase, Move_interface, Camera_FollowTa
                 }
                 else
                 {
-                    Debug.Log($"Slope Angle: {slopeAngle}, Is Sharp Corner: {isSharpCorner}, Aer");
+                    //Debug.Log($"Slope Angle: {slopeAngle}, Is Sharp Corner: {isSharpCorner}, Aer");
                     // 通常移動（斜面45°超 or 鋭角コーナー or 空中）
                     move = new Vector3(vecX * Speed, rb.linearVelocity.y, 0);
                 }
