@@ -4,7 +4,7 @@ using R3.Triggers;
 using UnityEditor.Build.Pipeline;
 using UnityEngine;
 
-public class ShapeModel : ModelBase , IShape
+public class ShapeModel : ModelBase , Shape_interface
 {
     public ShapeModel(PresenterBase presenter, SpriteRenderer spriteRenderer, EdgeCollider2D edgeCollider,int An = 4) : base(presenter)
     {
@@ -49,7 +49,7 @@ public class ShapeModel : ModelBase , IShape
         SetSprite();
         SetColl();
 
-        UnityEditor.EditorApplication.isPaused = true;
+        //UnityEditor.EditorApplication.isPaused = true;
     }
 
 

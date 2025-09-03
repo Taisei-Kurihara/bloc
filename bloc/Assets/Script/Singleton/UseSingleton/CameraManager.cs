@@ -1,7 +1,7 @@
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 
-public class CameraManager : DestroyAvailableMonoSingleton<CameraManager>
+public class CameraManager : Singleton_DestroyAvailableMonoSingleton<CameraManager>
 {
     Transform trackingTargetTransform;
     public Transform TrackingTargetTransform

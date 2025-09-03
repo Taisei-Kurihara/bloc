@@ -6,7 +6,7 @@ namespace Common
     /// <summary>
     /// Model‚âView‚É‰½‚ªÀ‘•‚³‚ê‚Ä‚¢‚é‚Ì‚©‚ğ”»•Ê‚·‚éˆ×‚Ì‚à‚ÌB
     /// </summary>
-    public interface IPresenter
+    public interface Presenter_interface
     {
         object View { get; }
 
