@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace InGame.Character
 {
-    public interface ICameraFollowTarget
+    public interface Camera_FollowTarget_interface
     {
         /// <summary>
         /// カメラのターゲットを設定する

@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public interface IShape : IModelBase
+public interface Shape_interface : IModelBase
 {
     public Shape shape { get; }
     public SpriteRenderer spriteRenderer { get; }

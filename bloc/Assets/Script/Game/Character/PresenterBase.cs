@@ -2,7 +2,7 @@ using UnityEngine;
 
 public class PresenterBase : MonoBehaviour
 {
-    IMove Move { get; }
+    Move_interface Move { get; }
 
-    public IShape Shape { get; }
+    public Shape_interface Shape { get; }
 }
