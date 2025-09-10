@@ -65,6 +65,7 @@ public class Move_Rotate_OnGrounded : ModelBase, Move_interface, Camera_FollowTa
         {
             // === 移動処理 ===
             var vec = action.Player.Move.ReadValue<Vector2>();
+            var rotatevec = action.Player.Rotate.ReadValue<float>();
             int vecX = (int)(new Vector2(vec.x, 0).normalized).x;
 
             lastX = (vecX != 0) ? vecX : (RotateMoveIsGrounded.Value) ? 0 : lastX;
@@ -93,9 +94,8 @@ public class Move_Rotate_OnGrounded : ModelBase, Move_interface, Camera_FollowTa
                 // 斜面の角度を取得（中央法線基準）
                 slopeAngle = Vector2.Angle(Vector2.up, center);
             }
-
             
-
+            
             // ===== 移動処理 =====
             if (vecX != 0)
             {
@@ -313,19 +313,8 @@ public class Move_Rotate_OnGrounded : ModelBase, Move_interface, Camera_FollowTa
         Dismove?.Dispose();
     }
 
-
-
     public void SetCameraFollowTarget(Transform target)
     {
         CameraManager.Instance().TrackingTargetTransform = target;
     }
-
-
-    
-
-
-    
-
 }
-
-
