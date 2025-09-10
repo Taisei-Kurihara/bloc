@@ -10,3 +10,5 @@
 /* 仮置き
     L AI_INSTRUCTIONS.md は .claude/commands にあります
 */
+
+jjj のUpdateにスペースキーを押した時に上向きベクトルを生成してリギッドボディ.ベロシティに入れる
