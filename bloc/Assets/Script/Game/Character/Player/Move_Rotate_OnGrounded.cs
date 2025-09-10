@@ -14,26 +14,40 @@ public class Move_Rotate_OnGrounded : ModelBase, Move_interface, Camera_FollowTa
         this.shape = shape;
     }
 
-    Shape_interface shape{ get; set; }
-
-    Rigidbody2D rb;
+    #region Fields and Properties
+    
+    // コアコンポーネント
+    private Shape_interface shape { get; set; }
+    private Rigidbody2D rb;
     private IDisposable Dismove;
     private IDisposable Disgravity;
 
-
-    //------ステータス---------
-    [SerializeField]
-    private float Speed = 10;
-    [SerializeField]
-    private float JumpPower = 15.0f;
-    [SerializeField]
-    private float GravityPower = -9.8f;
+    // 移動パラメータ
+    [SerializeField] private float Speed = 10f;
+    [SerializeField] private float JumpPower = 15.0f;
+    [SerializeField] private float GravityPower = -9.8f;
+    [SerializeField] private int maxJumpCount = 1;
+    
+    // 斜面と地面の定数
+    private const float MAX_SLOPE_ANGLE = 45f;
+    private const float GROUND_DISTANCE = 1f;
+    private const float CIRCLE_RADIUS = 0.5f;
+    
+    // 実行時変数
     private Vector3 move;
-    [SerializeField]
-    int maxJumpCount = 1; // 最大ジャンプ回数
-    ReactiveProperty<int> Count = new ReactiveProperty<int>(0);
+    private ReactiveProperty<int> Count = new ReactiveProperty<int>(0);
+    private ReactiveProperty<bool> RotateMoveIsGrounded = new ReactiveProperty<bool>(false);
+    private ReactiveProperty<bool> ShouldCheckNormal = new ReactiveProperty<bool>(false);
+    private Vector2[] groundNormals = new Vector2[4];
+    private float alignSpeed = 5f;
+    
+    // 物理マテリアル
+    private PhysicsMaterial2D pm2d = new PhysicsMaterial2D("DynamicMaterial") { friction = 0, bounciness = 0 };
 
-    PhysicsMaterial2D pm2d = new PhysicsMaterial2D("DynamicMaterial") { friction = 0, bounciness = 0 };
+    #endregion
+
+    #region Initialization
+
     public override void Init()
     {
         rb = presenter.GetComponent<Rigidbody2D>();
@@ -41,20 +55,21 @@ public class Move_Rotate_OnGrounded : ModelBase, Move_interface, Camera_FollowTa
         InputSystemActionsManager manager = InputSystemActionsManager.Instance();
         InputSystem_Actions action = manager.GetInputSystem_Actions();
         manager.PlayerEnable();
-        OnMoveEvent(rb);
-        OnJumpEvent();
-        CheckGround();
-
+        
+        InitializeMovement(rb);
+        InitializeJump();
+        InitializeGroundDetection();
         SetCameraFollowTarget(presenter.transform);
     }
 
-    #region アクション
+    #endregion
 
-    #region 移動・回転処理
+    #region Movement System
+
     /// <summary>
-    /// Moveできるようにする
+    /// 移動と回転システムを初期化
     /// </summary>
-    private void OnMoveEvent(Rigidbody2D rigid)
+    private void InitializeMovement(Rigidbody2D rigid)
     {
         rigid.gravityScale = 0;
         InputSystem_Actions action = InputSystemActionsManager.Instance().GetInputSystem_Actions();
@@ -74,7 +89,9 @@ public class Move_Rotate_OnGrounded : ModelBase, Move_interface, Camera_FollowTa
 
             // 鋭角コーナーでの法線追従を防止
             bool isSharpCorner = false;
+            bool isJumpRamp = false; // ジャンプ台判定
             float slopeAngle = 0f;
+            bool canClimb = true; // 斜面を登れるかどうか
 
             if (ShouldCheckNormal.Value)
             {
@@ -86,47 +103,74 @@ public class Move_Rotate_OnGrounded : ModelBase, Move_interface, Camera_FollowTa
                 float angleL = Vector2.Angle(center, left);
                 float angleR = Vector2.Angle(center, right);
 
+                // 鋭角コーナーの判定
                 if (angleL < 120f || angleR < 120f)
                 {
                     isSharpCorner = true;
+                    
+                    // ジャンプ台の判定（鋭角で十分な横方向の勢いがある場合のみ）
+                    // 移動開始時の誤判定を防ぐため、X方向の速度を確認
+                    if (Mathf.Abs(rb.linearVelocity.x) > Speed * 0.9f && slopeAngle > 15f)
+                    {
+                        isJumpRamp = true;
+                    }
                 }
 
                 // 斜面の角度を取得（中央法線基準）
                 slopeAngle = Vector2.Angle(Vector2.up, center);
+                
+                // 45度以上の斜面は登れない
+                if (slopeAngle >= MAX_SLOPE_ANGLE)
+                {
+                    canClimb = false;
+                }
             }
             
             
-            // ===== 移動処理 =====
+            // 入力と地面条件に基づく移動処理
             if (vecX != 0)
             {
                 pm2d.friction = 0f;
-
-                if (slopeAngle > 40f)
-                {
-                    //Debug.Log($"Slope Angle: {slopeAngle}, Is Sharp Corner: {isSharpCorner}, slow");
-                    move = new Vector3(vecX * (Speed / 10), rb.linearVelocity.y, 0);
-                }
-                if (ShouldCheckNormal.Value && !isSharpCorner) // 法線追従するか判定
-                {
-                    //Debug.Log($"Slope Angle: {slopeAngle}, Is Sharp Corner: {isSharpCorner}, normal");
-                    // 法線追従
-                    Vector2 normal = groundNormals[1];
-                    Vector3 desiredMove = new Vector3(vecX, 0, 0) * Speed;
-                    Vector3 projectedMove = Vector3.ProjectOnPlane(desiredMove, normal);
-                    move = new Vector3(projectedMove.x, rb.linearVelocity.y, 0);
-                }
-                else
-                {
-                    //Debug.Log($"Slope Angle: {slopeAngle}, Is Sharp Corner: {isSharpCorner}, Aer");
-                    // 通常移動（斜面45°超 or 鋭角コーナー or 空中）
-                    move = new Vector3(vecX * Speed, rb.linearVelocity.y, 0);
-                }
+                move = ProcessMovementInput(vecX, isJumpRamp, isSharpCorner, canClimb, slopeAngle);
             }
 
             else if (RotateMoveIsGrounded.Value)
             {
-                pm2d.friction = 1;
-                move = new Vector3(rb.linearVelocityX * 0.99f, rb.linearVelocity.y, 0);
+                // 45度以上の斜面で入力がない場合は下り方向に滑らせる
+                if (ShouldCheckNormal.Value && slopeAngle >= MAX_SLOPE_ANGLE)
+                {
+                    // 斜面を下る方向を計算
+                    Vector2 normal = groundNormals[1];
+                    Vector2 slopeDirection = Vector2.Perpendicular(normal);
+                    
+                    // 下り方向にする（Y成分が負になるように）
+                    if (slopeDirection.y > 0) slopeDirection = -slopeDirection;
+                    
+                    // 滑り落ちる速度
+                    float slideSpeed = Speed * 0.3f;
+                    
+                    // 地面との距離維持（下り時補正を適用）
+                    RaycastHit2D groundHit = Physics2D.Raycast(presenter.transform.position, Vector2.down, 1.5f, LayerMask.GetMask("Default"));
+                    float currentVelocityY = rb.linearVelocity.y;
+                    
+                    if (groundHit.collider != null && groundHit.distance < GROUND_DISTANCE - 0.2f)
+                    {
+                        float pushForce = (GROUND_DISTANCE - groundHit.distance) * 0.5f;
+                        currentVelocityY = Mathf.Max(currentVelocityY, pushForce);
+                    }
+                    
+                    // 下り補正を強化
+                    float downwardCorrection = slopeDirection.y * slideSpeed * 1.2f;
+                    
+                    pm2d.friction = 0f;
+                    move = new Vector3(slopeDirection.x * slideSpeed, downwardCorrection + currentVelocityY * 0.3f, 0);
+                }
+                else
+                {
+                    // 通常の摩擦による減速
+                    pm2d.friction = 1;
+                    move = new Vector3(rb.linearVelocityX * 0.99f, rb.linearVelocity.y, 0);
+                }
             }
             else if (!RotateMoveIsGrounded.Value)
             {
@@ -145,8 +189,30 @@ public class Move_Rotate_OnGrounded : ModelBase, Move_interface, Camera_FollowTa
             // 回転移動開始時/終了時に挙動を安定させるために
             if (RotateMoveIsGrounded.Value && vecX != 0) { RotateMoveIsGrounded.Value = GroundCheckRay(shape.edgeCollider.points[0].magnitude); }
             
+            // 空回り中の特別な回転処理（より厳密な条件）
+            bool isSpinning = !canClimb && IsMovingUpSlope(vecX, groundNormals[1]) && vecX != 0 && slopeAngle >= MAX_SLOPE_ANGLE;
+            
+            // 自動滑落中の回転処理（入力なし時の45度以上斜面）
+            bool isAutoSliding = vecX == 0 && RotateMoveIsGrounded.Value && ShouldCheckNormal.Value && slopeAngle >= MAX_SLOPE_ANGLE;
 
-            if (RotateMoveIsGrounded.Value && vecX != 0)
+            if (isSpinning)
+            {
+                // 空回り時は非常に速く回転（タイヤが空転しているような効果）
+                float spinSpeed = vecX * -300f * Time.fixedDeltaTime;
+                rb.MoveRotation(rb.rotation + spinSpeed);
+            }
+            else if (isAutoSliding)
+            {
+                // 自動滑落時の回転（下り時の入力と同じように）
+                Vector2 normal = groundNormals[1];
+                Vector2 slopeDirection = Vector2.Perpendicular(normal);
+                if (slopeDirection.y > 0) slopeDirection = -slopeDirection;
+                
+                // 滑り方向に基づいた回転
+                float slideDirection = slopeDirection.x > 0 ? 1 : -1;
+                AlignToGroundNormal((int)slideDirection);
+            }
+            else if (RotateMoveIsGrounded.Value && vecX != 0)
             {
                 // === 着地しているとき ===
                 AlignToGroundNormal(lastX);
@@ -168,9 +234,140 @@ public class Move_Rotate_OnGrounded : ModelBase, Move_interface, Camera_FollowTa
             }).AddTo(presenter);
     }
 
+    /// <summary>
+    /// 移動入力を処理し、適切な移動ベクトルを返す
+    /// </summary>
+    private Vector3 ProcessMovementInput(int vecX, bool isJumpRamp, bool isSharpCorner, bool canClimb, float slopeAngle)
+    {
+        // ジャンプ台の発射
+        if (isJumpRamp && rb.linearVelocity.y > -1f)
+        {
+            return HandleJumpRampLaunch();
+        }
+        
+        // 下り移動（最優先）
+        if (IsMovingDownSlope(vecX, groundNormals[1]) && ShouldCheckNormal.Value && !isSharpCorner)
+        {
+            return HandleDownhillMovement(vecX);
+        }
+        
+        // 急な上り坂での空回り（45度以上）
+        if (!canClimb && IsMovingUpSlope(vecX, groundNormals[1]) && slopeAngle >= MAX_SLOPE_ANGLE)
+        {
+            return HandleSteepUphillSpinning();
+        }
+        
+        // 中程度の斜面移動（40-45度）
+        if (slopeAngle > 40f && slopeAngle < MAX_SLOPE_ANGLE && !IsMovingDownSlope(vecX, groundNormals[1]))
+        {
+            return HandleMediumSlopeMovement(vecX);
+        }
+        
+        // 通常の地面移動
+        if (ShouldCheckNormal.Value && !isSharpCorner)
+        {
+            return HandleNormalGroundMovement(vecX);
+        }
+        
+        // 空中移動またはフォールバック
+        return new Vector3(vecX * Speed, rb.linearVelocity.y, 0);
+    }
+
+    /// <summary>
+    /// ジャンプ台の発射動作を処理
+    /// </summary>
+    private Vector3 HandleJumpRampLaunch()
+    {
+        Vector2 normal = groundNormals[1];
+        float horizontalSpeed = Mathf.Abs(rb.linearVelocity.x);
+        float verticalBoost = Mathf.Max(0, normal.y * horizontalSpeed * 0.2f);
+        
+        RotateMoveIsGrounded.Value = false;
+        return new Vector3(rb.linearVelocity.x, rb.linearVelocity.y + verticalBoost, 0);
+    }
+
+    /// <summary>
+    /// 強化された地面追従で下り移動を処理
+    /// </summary>
+    private Vector3 HandleDownhillMovement(int vecX)
+    {
+        Vector2 normal = groundNormals[1];
+        float currentVelocityY = ApplyCircleColliderBehavior(0.2f, 0.3f);
+        
+        Vector3 desiredMove = new Vector3(vecX, 0, 0) * Speed;
+        Vector3 projectedMove = Vector3.ProjectOnPlane(desiredMove, normal);
+        
+        float downwardCorrection = projectedMove.y * 1.2f;
+        return new Vector3(projectedMove.x, downwardCorrection + currentVelocityY * 0.3f, 0);
+    }
+
+    /// <summary>
+    /// 急な上り坂での空回りを処理（入力キャンセルだが物理は維持）
+    /// </summary>
+    private Vector3 HandleSteepUphillSpinning()
+    {
+        RaycastHit2D groundHit = Physics2D.Raycast(presenter.transform.position, Vector2.down, 1.5f, LayerMask.GetMask("Default"));
+        float pushAwayForce = 0f;
+        
+        if (groundHit.collider != null && groundHit.distance < GROUND_DISTANCE)
+        {
+            pushAwayForce = (GROUND_DISTANCE - groundHit.distance) * 3f;
+        }
+        
+        float verticalComponent = rb.linearVelocity.y + Mathf.Max(pushAwayForce - 1f, 0f);
+        float existingXVelocity = rb.linearVelocity.x * 0.95f;
+        
+        return new Vector3(existingXVelocity, verticalComponent, 0);
+    }
+
+    /// <summary>
+    /// 中程度の斜面移動を処理（40-45度）
+    /// </summary>
+    private Vector3 HandleMediumSlopeMovement(int vecX)
+    {
+        Vector2 normal = groundNormals[1];
+        float currentVelocityY = ApplyCircleColliderBehavior(2f, 0.1f);
+        
+        Vector3 desiredMove = new Vector3(vecX, 0, 0) * (Speed / 10);
+        Vector3 projectedMove = Vector3.ProjectOnPlane(desiredMove, normal);
+        
+        return new Vector3(projectedMove.x, currentVelocityY, 0);
+    }
+
+    /// <summary>
+    /// 表面投影で通常の地面移動を処理
+    /// </summary>
+    private Vector3 HandleNormalGroundMovement(int vecX)
+    {
+        Vector2 normal = groundNormals[1];
+        float currentVelocityY = ApplyCircleColliderBehavior(2f, 0.1f);
+        
+        Vector3 desiredMove = new Vector3(vecX, 0, 0) * Speed;
+        Vector3 projectedMove = Vector3.ProjectOnPlane(desiredMove, normal);
+        
+        return new Vector3(projectedMove.x, currentVelocityY, 0);
+    }
+
+    /// <summary>
+    /// 地面距離維持のためCircleCollider2Dのような動作を適用
+    /// </summary>
+    private float ApplyCircleColliderBehavior(float pushForceMultiplier, float distanceThreshold)
+    {
+        RaycastHit2D groundHit = Physics2D.Raycast(presenter.transform.position, Vector2.down, 1.5f, LayerMask.GetMask("Default"));
+        float currentVelocityY = rb.linearVelocity.y;
+        
+        if (groundHit.collider != null && groundHit.distance < GROUND_DISTANCE - distanceThreshold)
+        {
+            float pushForce = (GROUND_DISTANCE - groundHit.distance) * pushForceMultiplier;
+            currentVelocityY = Mathf.Max(currentVelocityY, pushForce);
+        }
+        
+        return currentVelocityY;
+    }
+
     #endregion
 
-    #region 回転補正
+    #region Rotation System
 
     /// <summary>
     /// 地面と平行になるように回転を補正（補間版）
@@ -206,12 +403,12 @@ public class Move_Rotate_OnGrounded : ModelBase, Move_interface, Camera_FollowTa
 
     #endregion
 
-    #region ジャンプ処理
+    #region Jump System
 
     /// <summary>
-    /// ジャンプ処理
+    /// ジャンプシステムを初期化
     /// </summary>
-    private void OnJumpEvent()
+    private void InitializeJump()
     {
         InputSystem_Actions action = InputSystemActionsManager.Instance().GetInputSystem_Actions();
 
@@ -229,18 +426,12 @@ public class Move_Rotate_OnGrounded : ModelBase, Move_interface, Camera_FollowTa
 
     #endregion
 
-    #endregion
+    #region Ground Detection System
 
-    #region
-
-    ReactiveProperty<bool> RotateMoveIsGrounded = new ReactiveProperty<bool>(false); // 回転移動用
-    ReactiveProperty<bool> ShouldCheckNormal = new ReactiveProperty<bool>(false); //法線確認するか
-    private Vector2 groundNormal = Vector2.up;
-    private float alignSpeed = 5f; // 補間速度
     /// <summary>
-    /// 地面の判定
+    /// 地面検出システムを初期化
     /// </summary>
-    public void CheckGround()
+    public void InitializeGroundDetection()
     {
         shape.edgeCollider
             .OnCollisionStay2DAsObservable()
@@ -269,15 +460,11 @@ public class Move_Rotate_OnGrounded : ModelBase, Move_interface, Camera_FollowTa
             }).AddTo(presenter);
     }
 
-    /// <summary>
-    /// 地面判定 + 法線取得
-    /// </summary>
-    private Vector2[] groundNormals = new Vector2[4]; // 左・中央・右の3本分
-
     private bool GroundCheckRay(float length = 1.1f)
     {
         bool isHit = false;
 
+        // 3本のレイキャストで地面を検出
         Vector3[] offsets = new Vector3[]
         {
         Vector3.left * 0.4f,
@@ -288,6 +475,7 @@ public class Move_Rotate_OnGrounded : ModelBase, Move_interface, Camera_FollowTa
         for (int i = 0; i < offsets.Length; i++)
         {
             Vector3 origin = presenter.transform.position + offsets[i];
+            
             RaycastHit2D hit = Physics2D.Raycast(origin, Vector2.down, length, LayerMask.GetMask("Default"));
             Debug.DrawRay(origin, Vector2.down * length, Color.red);
 
@@ -304,6 +492,39 @@ public class Move_Rotate_OnGrounded : ModelBase, Move_interface, Camera_FollowTa
 
         return isHit;
     }
+    
+    /// <summary>
+    /// 斜面を登ろうとしているかチェック（法線ベースの判定）
+    /// </summary>
+    private bool IsMovingUpSlope(int moveDirection, Vector2 slopeNormal)
+    {
+        if (moveDirection == 0) return false;
+        
+        // 法線に基づいて移動した場合のベクトルを計算
+        Vector3 desiredMove = new Vector3(moveDirection, 0, 0);
+        Vector3 projectedMove = Vector3.ProjectOnPlane(desiredMove, slopeNormal);
+        
+        // 投影された移動ベクトルのY成分で上り下りを判定
+        // Y成分が正の場合は上り、負の場合は下り
+        return projectedMove.y > 0.1f; // 明確に上向きの場合のみtrue
+    }
+    
+    /// <summary>
+    /// 斜面を下ろうとしているかチェック（法線ベースの判定）
+    /// </summary>
+    private bool IsMovingDownSlope(int moveDirection, Vector2 slopeNormal)
+    {
+        if (moveDirection == 0) return false;
+        
+        // 法線に基づいて移動した場合のベクトルを計算
+        Vector3 desiredMove = new Vector3(moveDirection, 0, 0);
+        Vector3 projectedMove = Vector3.ProjectOnPlane(desiredMove, slopeNormal);
+        
+        // 投影された移動ベクトルのY成分で上り下りを判定
+        // Y成分が負の場合は下り
+        return projectedMove.y < -0.1f; // 明確に下向きの場合のみtrue
+    }
+    
 
     #endregion
 

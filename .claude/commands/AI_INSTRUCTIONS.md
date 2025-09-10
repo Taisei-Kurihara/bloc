@@ -11,4 +11,8 @@
     L AI_INSTRUCTIONS.md は .claude/commands にあります
 */
 
-jjj のUpdateにスペースキーを押した時に上向きベクトルを生成してリギッドボディ.ベロシティに入れる
+Move_Rotate_OnGroundedのコードを整理してください
+
+コメントアウトは日本語で
+xxx
+Assets\Script\Game\Character\Player\Move_Rotate_OnGrounded.cs(429,5): error CS1028: Unexpected preprocessor directive
