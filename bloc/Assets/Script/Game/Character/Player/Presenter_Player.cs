@@ -20,20 +20,23 @@ namespace InGame
         [SerializeField]
         GameObject Point;
 
+        CircleCollider2D circleCollider;
+
         void Start()
         {
             inputActions = InputSystemActionsManager.Instance().GetInputSystem_Actions();
+            circleCollider = GetComponent<CircleCollider2D>();
             Shape = new ShapeModel(this, Point.GetComponent<SpriteRenderer>(), Point.GetComponent<EdgeCollider2D>(),3);
             Shape.Init();
 
-            Move = new Move_Rotate_OnGrounded(this, Shape);
+            Move = new Move_Rotate_OnGrounded(this, Shape, circleCollider);
             Move.Init();
             Observable.EveryUpdate().Subscribe(_ => { UpdateController(); }).AddTo(this);
 
         }
 
         /// <summary>
-        ///@ƒL[‘€ìŠÖŒW‚ÌŠÖ”
+        ///ã€€ã‚­ãƒ¼æ“ä½œé–¢ä¿‚ã®é–¢æ•°
         /// </summary>
         public void UpdateController()
         {
