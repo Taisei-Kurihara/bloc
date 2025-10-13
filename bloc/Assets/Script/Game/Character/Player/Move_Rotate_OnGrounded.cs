@@ -17,7 +17,8 @@ public enum GroundStatus
     downhill = 2,   // 下り坂状態.
     steepSlope = 3,  // 急坂状態.
     junpRamp = 4,   // ジャンプ台状態.
-    air = 5 // 空
+    air = 5, // 空.
+    wall = 6 // 壁.
 }
 
 public class Move_Rotate_OnGrounded : ModelBase, Move_interface, Camera_FollowTarget_interface
@@ -154,21 +155,40 @@ public class Move_Rotate_OnGrounded : ModelBase, Move_interface, Camera_FollowTa
 
         float groundDistance = 0;
 
-        // 修:4bit のflag管理用のint変数 を追加 下の4つのboolを << 0 から　<< 3 までシフトするint型変数にする 下のswitch文で条件分岐に使用する
-
-
         bool onground = false;
         bool onflat = false;
         bool steepSlope = false;
         bool uphill = false;
 
-        // 斜め下方向にrayを飛ばして地面を検出.
         UnityEngine.Vector2 origin = presenter.transform.position;
 
-        float groundHitlength = 2f;
+        // vecX!=0のときは横方向チェックを先に行う.
+        if (vecX != 0)
+        {
+            UnityEngine.Vector2 horizontalDirection = new UnityEngine.Vector2(vecX, 0);
+            RaycastHit2D horizontalHit = RaycastWithDebug(origin, horizontalDirection, 1.3f, Color.cyan);
+
+            if (horizontalHit.collider != null)
+            {
+                // 角度を調べて急坂かどうか確認.
+                float horizontalSlopeAngle = Mathf.Atan2(horizontalHit.normal.y, horizontalHit.normal.x) * Mathf.Rad2Deg;
+                horizontalSlopeAngle -= 90f; // 地面の傾きに変換.
+
+                const float EPSILON = 0.01f; // 誤差許容値.
+                bool isHorizontalSteep = (Mathf.Abs(horizontalSlopeAngle) + EPSILON >= MAX_SLOPE_ANGLE);
+
+                if (isHorizontalSteep)
+                {
+                    SetGroundStatus(GroundStatus.wall, "壁 : 横方向急坂");
+                    return;
+                }
+            }
+        }
+
+        // 斜め下方向にrayを飛ばして地面を検出.
+
         UnityEngine.Vector2 diagonalDirection = new UnityEngine.Vector2(vecX, -1).normalized;
-        RaycastHit2D hit = Physics2D.Raycast(origin, diagonalDirection, groundHitlength, LayerMask.GetMask("Default"));
-        Debug.DrawRay(origin, diagonalDirection * groundHitlength, Color.yellow);
+        RaycastHit2D hit = RaycastWithDebug(origin, diagonalDirection, 2, Color.yellow);
 
         onground = (hit.collider != null);
 
@@ -180,10 +200,8 @@ public class Move_Rotate_OnGrounded : ModelBase, Move_interface, Camera_FollowTa
             lastgroundAngle = (slopeAngle + 180f) * Mathf.Deg2Rad;
 
             // 地面方向に向かってrayを飛ばす.
-            groundHitlength = 1.3f;
             diagonalDirection = new UnityEngine.Vector2(Mathf.Cos(lastgroundAngle), Mathf.Sin(lastgroundAngle));
-            RaycastHit2D groundHit = Physics2D.Raycast(origin, diagonalDirection, groundHitlength, LayerMask.GetMask("Default"));
-            Debug.DrawRay(origin, diagonalDirection * groundHitlength, Color.green);
+            RaycastHit2D groundHit = RaycastWithDebug(origin, diagonalDirection, 1.3f, Color.green);
 
             onground = (groundHit.collider != null);
 
@@ -213,33 +231,35 @@ public class Move_Rotate_OnGrounded : ModelBase, Move_interface, Camera_FollowTa
             }
         }
 
+
+        // (既)修:SetGroundStatusに変更.
         switch (true)
         {
             case bool _ when !onground:
-                if (checkRayGroundStatus != GroundStatus.air) Debug.Log($"空中 : !onground");
-                checkRayGroundStatus = GroundStatus.air;
+                SetGroundStatus(GroundStatus.air, "空中 : !onground");
                 break;
             case bool _ when onflat:
-                if (checkRayGroundStatus != GroundStatus.flat) Debug.Log($"平地 : onflat");
-                checkRayGroundStatus = GroundStatus.flat;
+                SetGroundStatus(GroundStatus.flat, "平地 : onflat");
                 break;
             case bool _ when steepSlope && uphill:
-                if (checkRayGroundStatus != GroundStatus.steepSlope) Debug.Log($"急坂 : steepSlope && uphill");
-                checkRayGroundStatus = GroundStatus.steepSlope;
+                SetGroundStatus(GroundStatus.steepSlope, "急坂 : steepSlope && uphill");
                 break;
             case bool _ when uphill:
-                if (checkRayGroundStatus != GroundStatus.uphill) Debug.Log($"上り坂 : uphill");
-                checkRayGroundStatus = GroundStatus.uphill;
+                SetGroundStatus(GroundStatus.uphill, "上り坂 : uphill");
                 break;
             case bool _ when !uphill:
-                if (checkRayGroundStatus != GroundStatus.downhill) Debug.Log($"下り坂 : !uphill");
-                checkRayGroundStatus = GroundStatus.downhill;
+                SetGroundStatus(GroundStatus.downhill, "下り坂 : !uphill");
                 break;
             default:
-                if (checkRayGroundStatus != GroundStatus.air) Debug.Log($"空中 : else");
-                checkRayGroundStatus = GroundStatus.air;
+                SetGroundStatus(GroundStatus.air, "空中 : else");
                 break;
         }
+    }
+
+    void SetGroundStatus(GroundStatus value , string setText = "")
+    {
+        if (checkRayGroundStatus != value && setText != "") Debug.Log(setText);
+        checkRayGroundStatus = value;
     }
 
     #endregion
@@ -252,14 +272,12 @@ public class Move_Rotate_OnGrounded : ModelBase, Move_interface, Camera_FollowTa
     private bool DetermineColliderBehavior(int vecX, int lastX)
     {
         // 〇コライダーの透過/非透過設定.
-        if (vecX != 0)
-        {
-            return false;
-        }
-        else
+        if (vecX == 0)
         {
             return (checkRayGroundStatus != GroundStatus.steepSlope);
         }
+
+        return false;
     }
 
     #endregion
@@ -275,8 +293,10 @@ public class Move_Rotate_OnGrounded : ModelBase, Move_interface, Camera_FollowTa
         {
             switch (checkRayGroundStatus)
             {
+                case GroundStatus.wall:
+                    return;
                 case GroundStatus.steepSlope:
-                    rb.linearVelocity = new UnityEngine.Vector2(0, rb.linearVelocityY);
+                    SteepSlopeInertia();
                     return;
                 case GroundStatus.downhill:
                     HandleDownhillMovement(vecX);
@@ -295,6 +315,8 @@ public class Move_Rotate_OnGrounded : ModelBase, Move_interface, Camera_FollowTa
         {
             switch (checkRayGroundStatus)
             {
+                case GroundStatus.wall:
+                    return;
                 case GroundStatus.steepSlope:
                     return;
                 case GroundStatus.downhill:
@@ -355,9 +377,15 @@ public class Move_Rotate_OnGrounded : ModelBase, Move_interface, Camera_FollowTa
         rb.linearVelocity = MoveDirection;
     }
 
+
     private void AirInertia()
     {
         rb.linearVelocity = new UnityEngine.Vector3(rb.linearVelocity.x * (1f - 1e-4f), rb.linearVelocity.y, 0);
+    }
+
+    private void SteepSlopeInertia()
+    {
+        rb.linearVelocity = new UnityEngine.Vector3(rb.linearVelocity.x * (1f - 1e-9f), rb.linearVelocity.y, 0);
     }
 
     private void SnapToGround(int vecX)
@@ -393,7 +421,14 @@ public class Move_Rotate_OnGrounded : ModelBase, Move_interface, Camera_FollowTa
     {
         if (vecX != 0)
         {
-            RotateWhileAirborne(vecX);
+            if (checkRayGroundStatus == GroundStatus.steepSlope)
+            {
+                RotateWhileAirborneFast(vecX);
+            }
+            else
+            {
+                RotateWhileAirborne(vecX);
+            }
             return;
         }
         else
@@ -421,7 +456,7 @@ public class Move_Rotate_OnGrounded : ModelBase, Move_interface, Camera_FollowTa
     }
 
     /// <summary>
-    /// 空中で回転し続ける処理
+    /// 回転し続ける処理
     /// </summary>
     private void RotateWhileAirborne(int lastX)
     {
@@ -430,6 +465,19 @@ public class Move_Rotate_OnGrounded : ModelBase, Move_interface, Camera_FollowTa
             // 空中は lastX の方向に合わせて継続回転（補間付き）
             float targetAngle = rb.rotation + (lastX * -90f); // 1回転で90度回すイメージ
             float newRotation = Mathf.LerpAngle(rb.rotation, targetAngle, Time.fixedDeltaTime * (spinSpeed * 0.5f));
+            rb.MoveRotation(newRotation);
+        }
+    }
+
+    /// <summary>
+    /// 急坂で急速回転する関数
+    /// </summary>
+    private void RotateWhileAirborneFast(int lastX)
+    {
+        if (lastX != 0)
+        {
+            float targetAngle = rb.rotation + (lastX * -90f); // 1回転で90度回すイメージ
+            float newRotation = Mathf.LerpAngle(rb.rotation, targetAngle, Time.fixedDeltaTime * (spinSpeed * 0.5f * 2f));
             rb.MoveRotation(newRotation);
         }
     }
@@ -472,8 +520,27 @@ public class Move_Rotate_OnGrounded : ModelBase, Move_interface, Camera_FollowTa
             .Where(collider => collider.gameObject.layer == LayerMask.NameToLayer("Default")) // 地面のレイヤーを指定
             .Subscribe(collider =>
             {
-                // (既)修:急坂判定の場合はjump回数をリセットしない.
-                if (checkRayGroundStatus != GroundStatus.steepSlope)
+
+                // 衝突点の法線方向を取得して急坂判定を行う.
+                ContactPoint2D[] contacts = new ContactPoint2D[collider.contactCount];
+                collider.GetContacts(contacts);
+
+                bool isSteepSlope = false;
+                foreach (var contact in contacts)
+                {
+                    float slopeAngle = Mathf.Atan2(contact.normal.y, contact.normal.x) * Mathf.Rad2Deg;
+                    slopeAngle -= 90f; // 地面の傾きに変換.
+
+                    const float EPSILON = 0.01f; // 誤差許容値.
+                    if (Mathf.Abs(slopeAngle) + EPSILON >= MAX_SLOPE_ANGLE)
+                    {
+                        isSteepSlope = true;
+                        break;
+                    }
+                }
+
+                // 急坂でない場合のみjump回数をリセット.
+                if (!isSteepSlope)
                 {
                     JunpCount.Value = 0;
                 }
@@ -518,9 +585,7 @@ public class Move_Rotate_OnGrounded : ModelBase, Move_interface, Camera_FollowTa
         for (int i = 0; i < offsets.Length; i++)
         {
             UnityEngine.Vector3 origin = presenter.transform.position + offsets[i];
-
-            RaycastHit2D hit = Physics2D.Raycast(origin, UnityEngine.Vector2.down, length, LayerMask.GetMask("Default"));
-            Debug.DrawRay(origin, UnityEngine.Vector2.down * length, Color.red);
+            RaycastHit2D hit = RaycastWithDebug(origin, UnityEngine.Vector2.down, length, Color.red);
 
             if (hit.collider != null)
             {
@@ -543,6 +608,19 @@ public class Move_Rotate_OnGrounded : ModelBase, Move_interface, Camera_FollowTa
         }
 
         return isHit;
+    }
+
+
+    // (既)修: RaycastHit2D とDebug.DrawRayを出してRaycastHit2Dをreturnする関数を追加 引数は Vec2 origin , Vec2 direction, float length, int layerMask = LayerMask.GetMask("Default") + 現在RaycastHit2D とDebug.DrawRayを同時に出している部分を全てこの実装した関数に置換.
+    private RaycastHit2D RaycastWithDebug(UnityEngine.Vector2 origin, UnityEngine.Vector2 direction, float length, Color color, int layerMask = -1)
+    {
+        if (layerMask == -1)
+        {
+            layerMask = LayerMask.GetMask("Default");
+        }
+        RaycastHit2D hit = Physics2D.Raycast(origin, direction, length, layerMask);
+        Debug.DrawRay(origin, direction * length, color);
+        return hit;
     }
 
     #endregion
