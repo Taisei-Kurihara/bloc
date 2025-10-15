@@ -514,6 +514,7 @@ public class Move_Rotate_OnGrounded : ModelBase, Move_interface, Camera_FollowTa
     /// </summary>
     public void InitializeGroundDetection()
     {
+        // (既)修: jump回数がリセットされた時何処でリセットされたかをログに出す.
         // 地面に接地しているかの判定. 厳密にEdgeColliderの衝突判定で行う.
         shape.edgeCollider
             .OnCollisionStay2DAsObservable()
@@ -521,28 +522,32 @@ public class Move_Rotate_OnGrounded : ModelBase, Move_interface, Camera_FollowTa
             .Subscribe(collider =>
             {
 
-                // 衝突点の法線方向を取得して急坂判定を行う.
-                ContactPoint2D[] contacts = new ContactPoint2D[collider.contactCount];
-                collider.GetContacts(contacts);
-
-                bool isSteepSlope = false;
-                foreach (var contact in contacts)
+                if (JunpCount.Value != 0 && rb.linearVelocityY <= 0.5f)
                 {
-                    float slopeAngle = Mathf.Atan2(contact.normal.y, contact.normal.x) * Mathf.Rad2Deg;
-                    slopeAngle -= 90f; // 地面の傾きに変換.
+                    // 衝突点の法線方向を取得して急坂判定を行う.
+                    ContactPoint2D[] contacts = new ContactPoint2D[collider.contactCount];
+                    collider.GetContacts(contacts);
 
-                    const float EPSILON = 0.01f; // 誤差許容値.
-                    if (Mathf.Abs(slopeAngle) + EPSILON >= MAX_SLOPE_ANGLE)
+                    bool isSteepSlope = false;
+                    foreach (var contact in contacts)
                     {
-                        isSteepSlope = true;
-                        break;
-                    }
-                }
+                        float slopeAngle = Mathf.Atan2(contact.normal.y, contact.normal.x) * Mathf.Rad2Deg;
+                        slopeAngle -= 90f; // 地面の傾きに変換.
 
-                // 急坂でない場合のみjump回数をリセット.
-                if (!isSteepSlope)
-                {
-                    JunpCount.Value = 0;
+                        const float EPSILON = 0.01f; // 誤差許容値.
+                        if (Mathf.Abs(slopeAngle) + EPSILON >= MAX_SLOPE_ANGLE)
+                        {
+                            isSteepSlope = true;
+                            break;
+                        }
+                    }
+
+                    // 急坂でない場合のみjump回数をリセット.
+                    if (!isSteepSlope)
+                    {
+                        Debug.Log("Jump回数リセット: EdgeCollider接地判定 (急坂でない)");
+                        JunpCount.Value = 0;
+                    }
                 }
             }).AddTo(presenter);
 
@@ -551,10 +556,14 @@ public class Move_Rotate_OnGrounded : ModelBase, Move_interface, Camera_FollowTa
             .Where(_ => JunpCount.Value != 0)
             .Subscribe(_ =>
             {
-                // 上昇中でない、または地面に十分近い場合にリセット.
-                if (rb.linearVelocityY <= 0.5f && GroundCheckRay(1.3f))
+                // 上昇中でない、& は地面に十分近い場合にリセット.
+                if (rb.linearVelocityY <= 0.5f)
                 {
-                    JunpCount.Value = 0;
+                    if (GroundCheckRay(1.3f))
+                    {
+                        Debug.Log("Jump回数リセット: GroundCheckRay判定 (下降中)");
+                        JunpCount.Value = 0;
+                    }
                 }
             }).AddTo(presenter);
 

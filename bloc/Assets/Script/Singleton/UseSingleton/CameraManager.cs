@@ -1,8 +1,10 @@
 using Cysharp.Threading.Tasks;
+using System.Threading;
 using UnityEngine;
 
 public class CameraManager : Singleton_DestroyAvailableMonoSingleton<CameraManager>
 {
+
     Transform trackingTargetTransform;
     public Transform TrackingTargetTransform
     {
@@ -13,38 +15,64 @@ public class CameraManager : Singleton_DestroyAvailableMonoSingleton<CameraManag
         }
     }
 
+    // (æ—¢)ä¿®: ä»¥ä¸‹ã®CancellationTokenSourceã®å¤‰æ•°åã‚’UpdateCameraPositionã®å°‚ç”¨cancelç”¨ã«é©åˆ‡ãªåç§°ã«å¤‰æ›´ã—ã¦ãã ã•ã„.
+    private CancellationTokenSource updateCameraPositionCts;
+
     private void Start()
     {
-        UpdateUpdateCameraPosition().Forget();
+        UpdateCameraPosition().Forget();
     }
 
-    async UniTask UpdateUpdateCameraPosition()
+    async UniTask UpdateCameraPosition()
     {
-        var token = this.GetCancellationTokenOnDestroy();
-        while (true)
+        updateCameraPositionCts = new CancellationTokenSource();
+        var destroyToken = this.GetCancellationTokenOnDestroy();
+        var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(updateCameraPositionCts.Token, destroyToken);
+
+        if (trackingTargetTransform != null)
         {
-            if (trackingTargetTransform != null)
+            while (true)
             {
                 Vector3 cameraPosition = trackingTargetTransform.position;
-                cameraPosition.z = Camera.main.transform.position.z; // Maintain the current z position
+                cameraPosition.z = Camera.main.transform.position.z; // Maintain the current z position.
                 SetUpdateCameraPosition(cameraPosition);
+
+                await UniTask.DelayFrame(1 / 60, cancellationToken: linkedCts.Token);
             }
-            await UniTask.DelayFrame(1/60, cancellationToken: token);
+
+        }
+        else
+        {
+            linkedCts?.Dispose();
         }
     }
 
-    /// <summary> ƒJƒƒ‰ˆÊ’uXV</summary>
-    /// <param name="position">newƒJƒƒ‰ˆÊ’u</param>
+    #region å˜ç™ºå‡¦ç†
+
+    /// <summary> ã‚«ãƒ¡ãƒ©è¿½å¾“ã‚’åœæ­¢ã™ã‚‹. </summary>
+    public void StopCameraTracking()
+    {
+        if (updateCameraPositionCts != null && !updateCameraPositionCts.IsCancellationRequested)
+        {
+            updateCameraPositionCts.Cancel();
+            updateCameraPositionCts.Dispose();
+            updateCameraPositionCts = null;
+        }
+    }
+
+    /// <summary></summary>
+    /// <param name="position">newï¿½Jï¿½ï¿½ï¿½ï¿½ï¿½Ê’u</param>
     public void SetUpdateCameraPosition(Vector3 position)
     {
         Camera.main.transform.position = position;
     }
 
-    /// <summary> ƒJƒƒ‰ƒY[ƒ€XV </summary>
-    /// <param name="zoom">newƒY[ƒ€ƒŒƒxƒ‹</param>
+    /// <summary></summary>
+    /// <param name="zoom">newï¿½Yï¿½[ï¿½ï¿½ï¿½ï¿½ï¿½xï¿½ï¿½</param>
     public void UpdateCameraZoom(float zoom)
     {
         Camera.main.orthographicSize = zoom;
     }
 
+    #endregion
 }
