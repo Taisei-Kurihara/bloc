@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Linq;
 using System.Numerics;
@@ -80,6 +80,8 @@ public class Move_Rotate_OnGrounded : ModelBase, Move_interface, Camera_FollowTa
         InitializeJump();
         InitializeGroundDetection();
         SetCameraFollowTarget(presenter.transform);
+
+        CanvasManager.Instance();
     }
 
     #endregion

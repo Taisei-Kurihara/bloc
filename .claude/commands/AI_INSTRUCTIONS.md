@@ -1,4 +1,6 @@
 簡易命令
+    L 返答はjpで
+    L ファイルの文字コードはUTF8で
     L 常時 ファイルの変更があった場合そのfile名と変更箇所をまとめて提示してください
     L /AI 実行時"//"以降のその行の文字列を無視してください
     L /AI 実行時 "/*" と "*/" で挟まれた範囲の命令を無視してください
@@ -17,9 +19,10 @@
     L 変数/関数名変更による確認について呼び出し部分 (int a; a = 1; を int b; にしたとき その後に a = 1; を b = 1; に変更する部分) についてはすべて y
 
 
+
 /* 仮置き
     L AI_INSTRUCTIONS.md は .claude/commands にあります
     L 簡易命令再読み込み AI_INSTRUCTIONS.md 確認
 */
 
-C:\Users\hukaw\Desktop\DF\private\2D_bloc\bloc\Assets\Script\Singleton\UseSingleton\AddressablesManager.cs
+C:\Users\hukaw\Desktop\DF\private\2D_bloc\bloc\Assets\Script\System\SceneManagerSingleton.cs

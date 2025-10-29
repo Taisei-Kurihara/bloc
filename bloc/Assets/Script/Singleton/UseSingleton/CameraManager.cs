@@ -2,6 +2,7 @@ using Cysharp.Threading.Tasks;
 using System.Threading;
 using UnityEngine;
 
+// 修: scene移動時に前のcameraを無効化する用の関数を追加
 public class CameraManager : Singleton_DestroyAvailableMonoSingleton<CameraManager>
 {
 
@@ -15,7 +16,6 @@ public class CameraManager : Singleton_DestroyAvailableMonoSingleton<CameraManag
         }
     }
 
-    // (既)修: 以下のCancellationTokenSourceの変数名をUpdateCameraPositionの専用cancel用に適切な名称に変更してください.
     private CancellationTokenSource updateCameraPositionCts;
 
     private void Start()

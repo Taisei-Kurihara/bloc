@@ -14,7 +14,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_GroupName: UI_A_Canvas
   m_GUID: 8d75498e2cdfbfd40b31c0c83d32c201
-  m_SerializeEntries: []
+  m_SerializeEntries:
+  - m_GUID: 0deec5bea1448704fb59879451a9e56e
+    m_Address: Canvas_Blank
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   m_ReadOnly: 0
   m_Settings: {fileID: 11400000, guid: 86ad96b05d0e7014894b2b8994b1eb46, type: 2}
   m_SchemaSet:
