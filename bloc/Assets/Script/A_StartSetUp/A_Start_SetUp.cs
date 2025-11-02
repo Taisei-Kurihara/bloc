@@ -11,6 +11,7 @@ public class A_Start_SetUp : MonoBehaviour
     {
         Debug.Log("実行開始時に呼ばれた (AfterSceneLoad)");
 
+
         // StartCoroutine/UniTaskで非同期呼び出し
         _ = InitAsync();
     }
@@ -22,6 +23,9 @@ public class A_Start_SetUp : MonoBehaviour
         {
             Debug.Log($"現在のシーン名を設定中: {currentScene}");
             await DynamicObjectManager.Instance().SetScene(currentScene);
+            // fade開始前に読み込みを開始.
+            DynamicObjectManager.Instance().OnBeforeFadeLoadAsync().Forget();
+            DynamicObjectManager.Instance().OnFadeCompleted().Forget();
             Debug.Log($"シーン設定完了: {currentScene}");
         }
         else

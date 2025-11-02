@@ -6,4 +6,6 @@ public interface Shape_interface : IModelBase
     public SpriteRenderer spriteRenderer { get; }
 
     public EdgeCollider2D edgeCollider { get; }
+
+    public void SetShape(int shape);
 }

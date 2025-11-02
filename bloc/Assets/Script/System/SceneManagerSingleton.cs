@@ -1,87 +1,151 @@
-using System.Diagnostics;
 using Common;
 using Cysharp.Threading.Tasks;
+using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.SceneManagement;
-using R3;
-using R3.Collections;
-using UnityEngine;
 
-/// <summary>
-/// 使用可能なシーンを定義する列挙型
-/// </summary>
 public enum UseScene
 {
     Title,
     Game_C_Lv1_Lesson1
 }
 
-/// <summary>
-/// シーン管理シングルトンクラス
-/// シーンの切り替えと現在のシーン状態を管理する
-/// </summary>
 public class SceneManagerSingleton : Singleton_MonoBehaviourBase<SceneManagerSingleton>
 {
-
-    // 現在のシーン
-    public UseScene CurrentScene { get; private set; }
-
-    // シーンローディング中かどうかを示すフラグ
+    public UseScene CurrentScene { get; private set; } = UseScene.Title; // デフォルトは Title
     private bool isLoading = false;
+    private bool isInitialized = false;
 
-    /// <summary>
-    /// 指定されたシーンに変更する
-    /// 既にローディング中または同じシーンの場合は処理をスキップする
-    /// </summary>
-    /// <param name="newScene">変更先のシーン</param>
-    public async UniTask ChangeScene(UseScene newScene)
+    private async void Awake()
     {
-        var token = this.GetCancellationTokenOnDestroy();
-        if (isLoading || CurrentScene == newScene) return;
+        // Addressables 初期化
+        try
+        {
+            await Addressables.InitializeAsync();
+            isInitialized = true;
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError($"[SceneManager] Addressables initialization failed: {e}");
+        }
 
-        isLoading = true;
-        await LoadSceneAsync(newScene);
-        CurrentScene = newScene;
-        isLoading = false;
+        // 起動時の現在シーンを CurrentScene にセット
+        InitCurrentScene();
     }
 
     /// <summary>
-    /// シーンを非同期でロードする
-    /// フェードイン・アウト効果と共にシーンを切り替える
+    /// 起動時のシーン名から CurrentScene を初期化
     /// </summary>
-    /// <param name="scene">ロードするシーン</param>
-    async UniTask LoadSceneAsync(UseScene scene)
+    private void InitCurrentScene()
     {
-        // (既)修: Loadの表示の優先順位を1e5にする CanvasManagerのAttachToCanvas()に 表示の優先順位を設定する項目が追加された同名の関数を追加する.
-        // フェード用キャンバスを呼び出し.
-        var fadeHandle = Addressables.InstantiateAsync("Load");
-        await fadeHandle.Task;
-        var fadeObj = fadeHandle.Result;
-        fadeObj.transform.SetParent(transform);
+        string sceneName = SceneManager.GetActiveScene().name;
 
-        // UIManagerのCanvas親子付け関数で親子付け（表示優先順位100000）.
-        await CanvasManager.Instance().AttachToCanvas(fadeObj, 100000);
-
-        var loadScene = fadeObj.GetComponent<LoadScene_interface>();
-        if (loadScene != null)
+        if (System.Enum.TryParse<UseScene>(sceneName, out UseScene scene))
         {
-            await loadScene.StartFadeIn();
+            CurrentScene = scene;
         }
         else
         {
-            UnityEngine.Debug.LogWarning("LoadScene_interfaceがアタッチされていません");
+            Debug.LogWarning($"[SceneManager] CurrentScene 初期化失敗: シーン名 '{sceneName}' は UseScene に存在しません。デフォルト Title を使用");
+            CurrentScene = UseScene.Title;
+        }
+    }
+
+    /// <summary>
+    /// シーン切り替え（強制再ロード可能）
+    /// </summary>
+    public async UniTask ChangeScene(UseScene newScene, bool forceReload = false)
+    {
+        Debug.Log($"[SceneManager] ChangeScene called: {newScene} (forceReload={forceReload})");
+
+        if (isLoading) return;
+        isLoading = true;
+
+        await UniTask.WaitUntil(() => isInitialized);
+
+        try
+        {
+            await LoadSceneAsync(newScene);
+            CurrentScene = newScene;
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError($"[SceneManager] ChangeScene failed: {e}");
         }
 
-        // シーンをロード（非常に重要）
-        var sceneHandle = Addressables.LoadSceneAsync(scene.ToString(), LoadSceneMode.Single);
-        await sceneHandle.Task;
+        isLoading = false;
+    }
 
-        // DynamicObjectManagerに通知
-        await DynamicObjectManager.Instance().SetScene(scene);
+    private async UniTask LoadSceneAsync(UseScene scene)
+    {
+
+        // CanvasManager 初期化待機
+        await UniTask.WaitUntil(() => CanvasManager.Instance() != null);
+        await UniTask.WaitUntil(() => DynamicObjectManager.Instance() != null);
+
+        await CanvasManager.Instance().LoadCanvasAsync();
+
+        GameObject fadeObj = null;
+
+        try
+        {
+            var fadeHandle = Addressables.InstantiateAsync("Load");
+            await fadeHandle.Task;
+            fadeObj = fadeHandle.Result;
+            fadeObj.transform.SetParent(transform);
+            fadeObj.transform.localPosition = Vector3.zero;
+            await CanvasManager.Instance().AttachToCanvas(fadeObj, 100);
+
+            // UI_OneSet_Normalコンポーネントを取得してサイズと位置を設定.
+            var uiOneSet = fadeObj.GetComponent<UI_OneSet_Normal>();
+            if (uiOneSet != null)
+            {
+                uiOneSet.SetAnchor(Vector2.one/2, Vector2.one/2);
+                uiOneSet.AnchoredPosition = Vector3.zero;
+                uiOneSet.gameObject.GetComponent<RectTransform>().sizeDelta = new Vector2(Screen.width, Screen.height);
+            }
+
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogWarning($"[SceneManager] Failed to instantiate fade prefab: {e}");
+        }
+
+        var loadScene = fadeObj?.GetComponent<LoadScene_interface>();
+
+        if (loadScene != null) await loadScene.StartFadeIn();
+
+        // シーンロード
+        try
+        {
+            var sceneHandle = Addressables.LoadSceneAsync(scene.ToString(), LoadSceneMode.Single);
+            await sceneHandle.Task;
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError($"[SceneManager] Scene load failed: {e}");
+            throw;
+        }
+
+        // DynamicObjectManager に通知
+        try
+        {
+            await DynamicObjectManager.Instance().SetScene(scene);
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogWarning($"[SceneManager] DynamicObjectManager.SetScene failed: {e.Message}");
+        }
+
+        // fade開始前に読み込みを開始.
+        DynamicObjectManager.Instance().OnBeforeFadeLoadAsync().Forget();
 
         if (loadScene != null)
         {
             await loadScene.StartFadeOut();
+            GameObject.Destroy(fadeObj);
         }
+
+        DynamicObjectManager.Instance().OnFadeCompleted().Forget();
     }
 }

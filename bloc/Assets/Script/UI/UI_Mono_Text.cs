@@ -1,27 +1,28 @@
 using TMPro;
 using UnityEngine;
 
-public class UI_OneSet_worldPosition_Text : UI_OneSet_worldPosition
+[System.Serializable]
+public class UI_Mono_Text : MonoBehaviour
 {
+
     [SerializeField]
     private TextMeshProUGUI _textMeshProUGUI;
 
-    // TextMeshProUGUIã®ãƒ—ãƒ­ãƒ‘ãƒ†ã‚£.
+    // TextMeshProUGUI‚ÌƒvƒƒpƒeƒB.
     public TextMeshProUGUI TextMeshProUGUI => _textMeshProUGUI;
 
-    protected override void Initialize()
+    protected void Initialize()
     {
 
     }
-    // åˆæœŸåŒ–å‡¦ç†ã‚’è¡Œã†ãƒ¡ã‚½ãƒƒãƒ‰ (UI_OneSet_abstractã‹ã‚‰ç¶™æ‰¿).
-    public void Initialize(string text,float size = 100f)
+    // ‰Šú‰»ˆ—‚ðs‚¤ƒƒ\ƒbƒh (UI_OneSet_abstract‚©‚çŒp³).
+    public void Initialize(string text, float size = 36f)
     {
         Text = text;
 
         FontSize = size;
-
     }
-    // ãƒ†ã‚­ã‚¹ãƒˆã®è¨­å®šç”¨ãƒ—ãƒ­ãƒ‘ãƒ†ã‚£.
+    // ƒeƒLƒXƒg‚ÌÝ’è—pƒvƒƒpƒeƒB.
     public string Text
     {
         get => _textMeshProUGUI != null ? _textMeshProUGUI.text : string.Empty;
@@ -34,7 +35,7 @@ public class UI_OneSet_worldPosition_Text : UI_OneSet_worldPosition
         }
     }
 
-    // ãƒ†ã‚­ã‚¹ãƒˆã®è‰²è¨­å®šç”¨ãƒ—ãƒ­ãƒ‘ãƒ†ã‚£.
+    // ƒeƒLƒXƒg‚ÌFÝ’è—pƒvƒƒpƒeƒB.
     public Color TextColor
     {
         get => _textMeshProUGUI != null ? _textMeshProUGUI.color : Color.white;
@@ -47,7 +48,7 @@ public class UI_OneSet_worldPosition_Text : UI_OneSet_worldPosition
         }
     }
 
-    // ãƒ•ã‚©ãƒ³ãƒˆã‚µã‚¤ã‚ºè¨­å®šç”¨ãƒ—ãƒ­ãƒ‘ãƒ†ã‚£.
+    // ƒtƒHƒ“ƒgƒTƒCƒYÝ’è—pƒvƒƒpƒeƒB.
     public float FontSize
     {
         get => _textMeshProUGUI != null ? _textMeshProUGUI.fontSize : 0f;
@@ -60,7 +61,7 @@ public class UI_OneSet_worldPosition_Text : UI_OneSet_worldPosition
         }
     }
 
-    // åž‚ç›´æ–¹å‘ã®æ•´åˆ—è¨­å®šç”¨ãƒ—ãƒ­ãƒ‘ãƒ†ã‚£.
+    // ‚’¼•ûŒü‚Ì®—ñÝ’è—pƒvƒƒpƒeƒB.
     public TextAlignmentOptions Alignment
     {
         get => _textMeshProUGUI != null ? _textMeshProUGUI.alignment : TextAlignmentOptions.Center;
@@ -73,7 +74,7 @@ public class UI_OneSet_worldPosition_Text : UI_OneSet_worldPosition
         }
     }
 
-    // è‡ªå‹•ã‚µã‚¤ã‚ºèª¿æ•´æœ‰åŠ¹åŒ–ãƒ—ãƒ­ãƒ‘ãƒ†ã‚£.
+    // Ž©“®ƒTƒCƒY’²®—LŒø‰»ƒvƒƒpƒeƒB.
     public bool EnableAutoSizing
     {
         get => _textMeshProUGUI != null ? _textMeshProUGUI.enableAutoSizing : false;
@@ -86,7 +87,7 @@ public class UI_OneSet_worldPosition_Text : UI_OneSet_worldPosition
         }
     }
 
-    // è‡ªå‹•ã‚µã‚¤ã‚ºèª¿æ•´ã®æœ€å°ãƒ•ã‚©ãƒ³ãƒˆã‚µã‚¤ã‚ºãƒ—ãƒ­ãƒ‘ãƒ†ã‚£.
+    // Ž©“®ƒTƒCƒY’²®‚ÌÅ¬ƒtƒHƒ“ƒgƒTƒCƒYƒvƒƒpƒeƒB.
     public float FontSizeMin
     {
         get => _textMeshProUGUI != null ? _textMeshProUGUI.fontSizeMin : 0f;
@@ -99,7 +100,7 @@ public class UI_OneSet_worldPosition_Text : UI_OneSet_worldPosition
         }
     }
 
-    // è‡ªå‹•ã‚µã‚¤ã‚ºèª¿æ•´ã®æœ€å¤§ãƒ•ã‚©ãƒ³ãƒˆã‚µã‚¤ã‚ºãƒ—ãƒ­ãƒ‘ãƒ†ã‚£.
+    // Ž©“®ƒTƒCƒY’²®‚ÌÅ‘åƒtƒHƒ“ƒgƒTƒCƒYƒvƒƒpƒeƒB.
     public float FontSizeMax
     {
         get => _textMeshProUGUI != null ? _textMeshProUGUI.fontSizeMax : 0f;
@@ -112,7 +113,7 @@ public class UI_OneSet_worldPosition_Text : UI_OneSet_worldPosition
         }
     }
 
-    // ãƒ†ã‚­ã‚¹ãƒˆã®æŠ˜ã‚Šè¿”ã—è¨­å®šãƒ—ãƒ­ãƒ‘ãƒ†ã‚£.
+    // ƒeƒLƒXƒg‚ÌÜ‚è•Ô‚µÝ’èƒvƒƒpƒeƒB.
     public bool EnableWordWrapping
     {
         get => _textMeshProUGUI != null ? _textMeshProUGUI.enableWordWrapping : false;
@@ -125,7 +126,7 @@ public class UI_OneSet_worldPosition_Text : UI_OneSet_worldPosition
         }
     }
 
-    // ãƒ†ã‚­ã‚¹ãƒˆã‚ªãƒ¼ãƒãƒ¼ãƒ•ãƒ­ãƒ¼ãƒ¢ãƒ¼ãƒ‰è¨­å®šãƒ—ãƒ­ãƒ‘ãƒ†ã‚£.
+    // ƒeƒLƒXƒgƒI[ƒo[ƒtƒ[ƒ‚[ƒhÝ’èƒvƒƒpƒeƒB.
     public TextOverflowModes OverflowMode
     {
         get => _textMeshProUGUI != null ? _textMeshProUGUI.overflowMode : TextOverflowModes.Overflow;
@@ -137,5 +138,4 @@ public class UI_OneSet_worldPosition_Text : UI_OneSet_worldPosition
             }
         }
     }
-    
 }

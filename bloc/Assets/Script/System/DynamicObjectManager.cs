@@ -41,10 +41,37 @@ public class DynamicObjectManager : Singleton_DestroyAvailableMonoSingleton<Dyna
             case UseScene.Game_C_Lv1_Lesson1:
                 UseDO = new DynamicObjectController_Lv1_Lesson1();
                 break;
+            default:
+                break;
+
         }
 
         // シーンロード後処理を実行
         await UseDO.OnSceneLoadedAsync();
+    }
+
+    /// <summary>
+    /// fade開始前に読み込みを開始する処理を実行.
+    /// </summary>
+    public async UniTask OnBeforeFadeLoadAsync()
+    {
+        await UseDO.OnBeforeFadeLoadAsync();
+    }
+
+    /// <summary>
+    /// fade完了後の処理を実行.
+    /// </summary>
+    public async UniTask OnFadeCompleted()
+    {
+        await UseDO.OnFadeCompletedAsync();
+    }
+
+    /// <summary>
+    /// シーンのアンロード時の処理を実行.
+    /// </summary>
+    public async UniTask OnSceneUnloadedAsync()
+    {
+        await UseDO.OnSceneUnloadedAsync();
     }
 
     /// <summary>
@@ -83,5 +110,7 @@ public class DynamicObjectManager : Singleton_DestroyAvailableMonoSingleton<Dyna
             }
         }
         loadedAssets.Clear();
+
+        
     }
 }
