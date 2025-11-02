@@ -5,7 +5,7 @@ using UnityEngine;
 /// 通常のシーンローディングクラス
 /// フェードイン・フェードアウト効果を使ったシーン遷移を実装する
 /// </summary>
-public class LoadScene_Normal : MonoBehaviour, LoadScene_interface
+public class LoadScene_Normal_Fade : MonoBehaviour, LoadScene_interface
 {
     // フェード用のキャンバスグループ
     [SerializeField] CanvasGroup fadeCanvas;
@@ -46,5 +46,7 @@ public class LoadScene_Normal : MonoBehaviour, LoadScene_interface
             fadeCanvas.alpha = ((time / changetime) - 1) * -1;
             await UniTask.Yield();
         }
+
+
     }
 }

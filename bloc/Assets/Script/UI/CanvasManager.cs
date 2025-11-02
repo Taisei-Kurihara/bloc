@@ -19,6 +19,11 @@ public class CanvasManager : Singleton_MonoBehaviourBase<CanvasManager>
         // 既存のCanvasがあれば破棄する.
         if (currentCanvas != null)
         {
+            // 自身の子オブジェクトをすべて削除.
+            foreach (Transform child in this.transform)
+            {
+                UnityEngine.Object.Destroy(child.gameObject);
+            }
             UnityEngine.Object.Destroy(currentCanvas);
             currentCanvas = null;
         }
@@ -49,7 +54,7 @@ public class CanvasManager : Singleton_MonoBehaviourBase<CanvasManager>
 
         if (currentCanvas != null && childObject != null)
         {
-            childObject.transform.SetParent(currentCanvas.transform);
+            childObject.transform.SetParent(currentCanvas.transform, false);
         }
     }
 

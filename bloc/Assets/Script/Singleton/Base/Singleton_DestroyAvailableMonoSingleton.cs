@@ -1,4 +1,6 @@
+using Cysharp.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.AddressableAssets;
 
 
 /// <summary>
@@ -12,6 +14,8 @@ public class Singleton_DestroyAvailableMonoSingleton<T> : MonoBehaviour where T 
     /// </summary>
     protected static T instance;
 
+    bool isInitialized = false;
+
     /// <summary>
     /// 本体の取得
     /// </summary>
@@ -23,7 +27,26 @@ public class Singleton_DestroyAvailableMonoSingleton<T> : MonoBehaviour where T 
         {
             var gameObject = new GameObject(typeof(T).Name);
             instance = gameObject.AddComponent<T>();
+
+            // Awake が呼ばれる前に強制初期化
+            instance.Init().Forget();
         }
         return instance;
+    }
+
+    // SceneManagerSingleton 内
+    private async UniTaskVoid Init()
+    {
+        Debug.Log("[SceneManager] Forced Init start");
+        try
+        {
+            await Addressables.InitializeAsync();
+            isInitialized = true;
+            Debug.Log("[SceneManager] Forced Init complete");
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError($"[SceneManager] Forced Init failed: {e}");
+        }
     }
 }
