@@ -37,7 +37,7 @@ public abstract class Contact_abstract : MonoBehaviour
     protected AudioClip contactSound;
 
     [SerializeField]
-    protected ContactType[] ResponseTargets;  // •¡”Œ`‚É•ÏX
+    protected ContactType[] ResponseTargets;  // è¤‡æ•°å½¢ã«å¤‰æ›´
     
     protected Rigidbody2D rb;
     public Rigidbody2D RB { get { if (rb == null) rb = GetComponent<Rigidbody2D>(); return rb; } }
@@ -49,10 +49,10 @@ public abstract class Contact_abstract : MonoBehaviour
         rb.OnTriggerEnter2DAsObservable()
             .Subscribe(collider =>
             {
-                // ‘Šè‚Ì Layer –¼Ì‚ğæ“¾
+                // ç›¸æ‰‹ã® Layer åç§°ã‚’å–å¾—
                 string otherLayerName = LayerMask.LayerToName(collider.gameObject.layer);
 
-                // ResponseTargets ‚Ì enum –¼Ì‚Æ”äŠr
+                // ResponseTargets ã® enum åç§°ã¨æ¯”è¼ƒ
                 foreach (var target in ResponseTargets)
                 {
                     if (target.ToString() == otherLayerName)

@@ -1,12 +1,26 @@
+using Cysharp.Threading.Tasks;
 using UnityEngine;
 
 public class Contact_Goal : Contact_abstract
 {
     override protected void Contact(Collider2D collider)
     {
-        // ƒS[ƒ‹‚É“ž’B‚µ‚½‚Æ‚«‚Ìˆ—
+        // ã‚´ãƒ¼ãƒ«ã«åˆ°é”ã—ãŸã¨ãã®å‡¦ç†
         Debug.Log("Goal reached!");
-        // ‚±‚±‚ÅƒQ[ƒ€ƒNƒŠƒA‚Ìˆ—‚ð’Ç‰Á‚Å‚«‚Ü‚·
-        // —á: ƒV[ƒ“‚ÌØ‚è‘Ö‚¦AUI‚Ì•\Ž¦‚È‚Ç
+        ChangeScene().Forget();
+        // ã“ã“ã§ã‚²ãƒ¼ãƒ ã‚¯ãƒªã‚¢ã®å‡¦ç†ã‚’è¿½åŠ ã§ãã¾ã™
+        // ä¾‹: ã‚·ãƒ¼ãƒ³ã®åˆ‡ã‚Šæ›¿ãˆã€UIã®è¡¨ç¤ºãªã©
+    }
+
+    private async UniTask ChangeScene()
+    {
+        Debug.Log("Goal ins!");
+        // SceneManagerSingletonãŒå­˜åœ¨ã—ãªã„å ´åˆã¯å¾…æ©Ÿã¾ãŸã¯ç”Ÿæˆ
+        var sceneManager = SceneManagerSingleton.Instance();
+        await UniTask.WaitUntil(() => sceneManager != null);
+        Debug.Log("Goal not null!");
+
+        await sceneManager.ChangeScene(UseScene.Title);
+        Debug.Log("Goal cs!");
     }
 }

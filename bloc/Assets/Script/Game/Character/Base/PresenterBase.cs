@@ -4,5 +4,5 @@ public class PresenterBase : MonoBehaviour
 {
     Move_interface Move { get; }
 
-    public Shape_interface Shape { get; }
+    Shape_interface Shape { get; }
 }
