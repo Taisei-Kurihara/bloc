@@ -2,9 +2,9 @@ using System.Collections.Generic;
 using R3;
 using UnityEngine;
 
-public class ShapeModel : ModelBase , Shape_interface
+public class Shape_Model : ModelBase , Shape_interface
 {
-    public ShapeModel(PresenterBase presenter, SpriteRenderer spriteRenderer, EdgeCollider2D edgeCollider,int An = 4) : base(presenter)
+    public Shape_Model(PresenterBase presenter, SpriteRenderer spriteRenderer, EdgeCollider2D edgeCollider,int An = 4) : base(presenter)
     {
         this.presenter = presenter;
         N_Angular = An;
@@ -13,6 +13,7 @@ public class ShapeModel : ModelBase , Shape_interface
         this.edgeCollider = edgeCollider;
 
         offsetobj = edgeCollider.transform;
+        //DebugeN_AngularUpdate();
     }
 
     [SerializeField]
@@ -28,19 +29,20 @@ public class ShapeModel : ModelBase , Shape_interface
 
     public override void Init()
     {
-        shape = new Shape(N_Angular);
+        this.shape = new Shape(N_Angular);
         SetAll();
-
         DebugeLineUpdate();
     }
 
-    void SetAll(int An)
+    public void SetShape(int shape)
     {
-        shape = new Shape(N_Angular);
+        this.shape.ShapeSetNAnglar(shape);
         SetAll();
+        DebugeLineUpdate();
     }
     void SetAll()
     {
+
         // 表示・当たり判定を更新
         SetSprite();
         SetColl();
@@ -83,7 +85,7 @@ public class ShapeModel : ModelBase , Shape_interface
         {
             Debug.Log("N_Angular:" + N_Angular + "/ofs:" + shape.ShapeCase(N_Angular).y);
             presenter.transform.position = Vector2.zero;
-            SetAll(N_Angular);
+            SetShape(N_Angular);
             N_Angular++;
         }).AddTo(presenter);
     }

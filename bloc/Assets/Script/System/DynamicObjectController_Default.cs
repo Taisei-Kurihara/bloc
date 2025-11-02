@@ -7,6 +7,17 @@ using UnityEngine;
 
 public class DynamicObjectController_Default : DynamicObjectController_interface
 {
+    public async UniTask OnBeforeFadeLoadAsync()
+    {
+        await UniTask.CompletedTask;
+    }
+
+    public async UniTask OnFadeCompletedAsync()
+    {
+        // デフォルトは何もしない
+        await UniTask.CompletedTask;
+    }
+
     public async UniTask OnSceneLoadedAsync()
     {
         // デフォルトは何もしない

@@ -7,14 +7,13 @@ public class TestInput_check : MonoBehaviour
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        LogAllInputActions();
+        //LogAllInputActions();
     }
 
-    // (既)修:Input Systemで現在何かしらの入力があるときその入力のname(Akeyが押されているときA)をlogで返す機能をUpdateに追加してください
     // Update is called once per frame
     void Update()
     {
-        LogCurrentInput();
+        //LogCurrentInput();
     }
 
     // InputActionの一覧とその対応入力を取得して順にlogを出す関数.
