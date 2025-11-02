@@ -5,9 +5,9 @@ namespace InGame.Character
     public interface Camera_FollowTarget_interface
     {
         /// <summary>
-        /// ƒJƒƒ‰‚Ìƒ^[ƒQƒbƒg‚ğİ’è‚·‚é
+        /// ã‚«ãƒ¡ãƒ©ã®ã‚¿ãƒ¼ã‚²ãƒƒãƒˆã‚’è¨­å®šã™ã‚‹
         /// </summary>
-        /// <param name="target">ƒJƒƒ‰‚Ìƒ^[ƒQƒbƒg</param>
+        /// <param name="target">ã‚«ãƒ¡ãƒ©ã®ã‚¿ãƒ¼ã‚²ãƒƒãƒˆ</param>
         public void SetCameraFollowTarget(UnityEngine.Transform target);
     }
 }

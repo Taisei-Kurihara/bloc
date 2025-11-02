@@ -1,12 +1,10 @@
 using System.Collections.Generic;
 using R3;
-using R3.Triggers;
-using UnityEditor.Build.Pipeline;
 using UnityEngine;
 
-public class ShapeModel : ModelBase , Shape_interface
+public class Shape_Model : ModelBase , Shape_interface
 {
-    public ShapeModel(PresenterBase presenter, SpriteRenderer spriteRenderer, EdgeCollider2D edgeCollider,int An = 4) : base(presenter)
+    public Shape_Model(PresenterBase presenter, SpriteRenderer spriteRenderer, EdgeCollider2D edgeCollider,int An = 4) : base(presenter)
     {
         this.presenter = presenter;
         N_Angular = An;
@@ -15,6 +13,7 @@ public class ShapeModel : ModelBase , Shape_interface
         this.edgeCollider = edgeCollider;
 
         offsetobj = edgeCollider.transform;
+        //DebugeN_AngularUpdate();
     }
 
     [SerializeField]
@@ -30,22 +29,21 @@ public class ShapeModel : ModelBase , Shape_interface
 
     public override void Init()
     {
-        shape = new Shape(N_Angular);
+        this.shape = new Shape(N_Angular);
         SetAll();
-
         DebugeLineUpdate();
     }
 
-    void SetAll(int An)
+    public void SetShape(int shape)
     {
-        shape = new Shape(N_Angular);
+        this.shape.ShapeSetNAnglar(shape);
         SetAll();
+        DebugeLineUpdate();
     }
     void SetAll()
     {
 
-
-        // •\¦E“–‚½‚è”»’è‚ğXV
+        // è¡¨ç¤ºãƒ»å½“ãŸã‚Šåˆ¤å®šã‚’æ›´æ–°
         SetSprite();
         SetColl();
 
@@ -87,7 +85,7 @@ public class ShapeModel : ModelBase , Shape_interface
         {
             Debug.Log("N_Angular:" + N_Angular + "/ofs:" + shape.ShapeCase(N_Angular).y);
             presenter.transform.position = Vector2.zero;
-            SetAll(N_Angular);
+            SetShape(N_Angular);
             N_Angular++;
         }).AddTo(presenter);
     }
@@ -96,7 +94,7 @@ public class ShapeModel : ModelBase , Shape_interface
     {
         Observable.EveryUpdate().Subscribe(_ =>
         {
-            // ƒfƒoƒbƒO—p‚Ìƒ‰ƒCƒ“‚ğ•`‰æ
+            // ãƒ‡ãƒãƒƒã‚°ç”¨ã®ãƒ©ã‚¤ãƒ³ã‚’æç”»
             shape.DebugeLine(spriteRenderer.transform, presenter.transform);
         }).AddTo(presenter);
     }
@@ -111,9 +109,9 @@ public class ShapeModel : ModelBase , Shape_interface
 
 public class Shape
 {
-    #region SetƒtƒB[ƒ‹ƒh
+    #region Setãƒ•ã‚£ãƒ¼ãƒ«ãƒ‰
 
-    #region ƒƒ\ƒbƒh
+    #region ãƒ¡ã‚½ãƒƒãƒ‰
 
     public Shape(int N_Angular = 3,float size = 100 , bool flatDown = true)
     {
@@ -139,7 +137,7 @@ public class Shape
         {
             if (N_Angular % 2 != 0)
             {
-                flatDownOffset = Mathf.PI / 2f; // Šï”F’¸“_‚ª‰ºŒü‚«
+                flatDownOffset = Mathf.PI / 2f; // å¥‡æ•°ï¼šé ‚ç‚¹ãŒä¸‹å‘ã
             }
             else
             {
@@ -191,7 +189,7 @@ public class Shape
         {
             for (int x = 0; x < tex.width; x++)
             {
-                tex.SetPixel(x, y, Color.white); // Alpha = 1.0 ‚Ì”’‚Å“h‚è‚Â‚Ô‚µ
+                tex.SetPixel(x, y, Color.white); // Alpha = 1.0 ã®ç™½ã§å¡—ã‚Šã¤ã¶ã—
             }
         }
 
@@ -220,7 +218,7 @@ public class Shape
 
     #endregion
 
-    #region ƒvƒƒpƒeƒB
+    #region ãƒ—ãƒ­ãƒ‘ãƒ†ã‚£
     public Vector2[] SetVertices
     {
         set
@@ -236,9 +234,9 @@ public class Shape
 
 
 
-    #region GetƒtƒB[ƒ‹ƒh
+    #region Getãƒ•ã‚£ãƒ¼ãƒ«ãƒ‰
 
-    public float flatDownOffset { get; private set; } = 0f; // ‰ŠúŠp“x
+    public float flatDownOffset { get; private set; } = 0f; // åˆæœŸè§’åº¦
 
     public int length { get; private set; }
     public float versize { get; private set; }
@@ -256,7 +254,7 @@ public class Shape
 
 
 
-    #region ˆÊ’u’²®
+    #region ä½ç½®èª¿æ•´
 
     public Vector2[] OfsVertices(float size, TextAnchor CenterDir = TextAnchor.MiddleCenter)
     {
@@ -320,10 +318,10 @@ public class Shape
                 break;
         }
 
-        return ofs - Vector2.one * 0.5f; // ’†‰›‚ğŠî€‚É‚·‚é‚½‚ßƒIƒtƒZƒbƒg‚ğ’²®
+        return ofs - Vector2.one * 0.5f; // ä¸­å¤®ã‚’åŸºæº–ã«ã™ã‚‹ãŸã‚ã‚ªãƒ•ã‚»ãƒƒãƒˆã‚’èª¿æ•´
     }
 
-    // “Á’è‚ÌŒ`ó‚¾‚¯ˆÊ’u‚ğ‚¸‚ç‚·—p‚ÌƒIƒtƒZƒbƒg
+    // ç‰¹å®šã®å½¢çŠ¶ã ã‘ä½ç½®ã‚’ãšã‚‰ã™ç”¨ã®ã‚ªãƒ•ã‚»ãƒƒãƒˆ
     public Vector3 ShapeCase(int N_Angular)
     {
         Vector2 ofs = Vector2.zero;
@@ -337,13 +335,13 @@ public class Shape
     }
     float OffsetYQuick(int n)
     {
-        // èŒy‚È‘Œ©®
+        // æ‰‹è»½ãªæ—©è¦‹å¼
         return 2.25f / (n * n);
     }
 
     float OffsetYFitted(int n)
     {
-        // ‹ß—ƒtƒBƒbƒg”Åi’ñ¦ƒf[ƒ^‚É‡‚í‚¹‚Ä’²®j
+        // è¿‘ä¼¼ãƒ•ã‚£ãƒƒãƒˆç‰ˆï¼ˆæç¤ºãƒ‡ãƒ¼ã‚¿ã«åˆã‚ã›ã¦èª¿æ•´ï¼‰
         float y = -0.00670f + 0.05742f / n + 2.1377f / (n * n);
         return Mathf.Max(0f, y);
     }
@@ -353,14 +351,14 @@ public class Shape
         Vector3 A1 = ColliderPoints[0];
         Vector3 B2 = ColliderPoints[0];
 
-        // ƒ|ƒŠƒSƒ“‚Ì•Ó‚ğ•`‰æ
+        // ãƒãƒªã‚´ãƒ³ã®è¾ºã‚’æç”»
         for (int i = 0; i < length; i++)
         {
             A1 = ColliderPoints[i];
             B2 = ColliderPoints[(i + 1) % length];
 
             Debug.DrawLine(
-                transform.TransformPoint(A1), // ƒ[ƒJƒ‹¨ƒ[ƒ‹ƒh
+                transform.TransformPoint(A1), // ãƒ­ãƒ¼ã‚«ãƒ«â†’ãƒ¯ãƒ¼ãƒ«ãƒ‰
                 transform.TransformPoint(B2),
                 Color.red,
                 0f
@@ -369,7 +367,7 @@ public class Shape
             A1 = ColliderPoints[i] + (Vector2)ShapeCase(length);
             Debug.DrawLine(
                 transform.TransformPoint(-ShapeCase(length)),
-                pre.TransformPoint(A1 * 1.3f), // Šg‘å•ûŒü‚à‰ñ“]”½‰f
+                pre.TransformPoint(A1 * 1.3f), // æ‹¡å¤§æ–¹å‘ã‚‚å›è»¢åæ˜ 
                 Color.blue,
                 0f
             );

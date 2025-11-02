@@ -7,7 +7,7 @@ public class AudioManager : Singleton_MonoBehaviourBase<AudioManager>
 
     void Awake()
     {
-        // Šù‚É‘¶İ‚·‚éƒCƒ“ƒXƒ^ƒ“ƒX‚ª‚ ‚éê‡‚Í”jŠü
+        // æ—¢ã«å­˜åœ¨ã™ã‚‹ã‚¤ãƒ³ã‚¹ã‚¿ãƒ³ã‚¹ãŒã‚ã‚‹å ´åˆã¯ç ´æ£„
         if (instance != null && instance != this)
         {
             Destroy(gameObject);
@@ -17,7 +17,7 @@ public class AudioManager : Singleton_MonoBehaviourBase<AudioManager>
         instance = this as AudioManager;
         DontDestroyOnLoad(gameObject);
 
-        // AudioSource ‚ğ•t—^
+        // AudioSource ã‚’ä»˜ä¸
         audioSource = gameObject.GetComponent<AudioSource>();
         if (audioSource == null)
         {
@@ -26,7 +26,7 @@ public class AudioManager : Singleton_MonoBehaviourBase<AudioManager>
     }
 
     /// <summary>
-    /// w’è‚³‚ê‚½ AudioClip ‚ğˆê“x‚¾‚¯Ä¶‚·‚é
+    /// æŒ‡å®šã•ã‚ŒãŸ AudioClip ã‚’ä¸€åº¦ã ã‘å†ç”Ÿã™ã‚‹
     /// </summary>
     public void PlayOneShot(AudioClip clip, float volume = 1f)
     {
@@ -35,7 +35,7 @@ public class AudioManager : Singleton_MonoBehaviourBase<AudioManager>
     }
 
     /// <summary>
-    /// w’è‚³‚ê‚½ AudioClip ‚ğƒ‹[ƒvÄ¶‚·‚é
+    /// æŒ‡å®šã•ã‚ŒãŸ AudioClip ã‚’ãƒ«ãƒ¼ãƒ—å†ç”Ÿã™ã‚‹
     /// </summary>
     public void PlayLoop(AudioClip clip, float volume = 1f)
     {
@@ -47,7 +47,7 @@ public class AudioManager : Singleton_MonoBehaviourBase<AudioManager>
     }
 
     /// <summary>
-    /// Ä¶‚ğ’â~‚·‚é
+    /// å†ç”Ÿã‚’åœæ­¢ã™ã‚‹
     /// </summary>
     public void Stop()
     {

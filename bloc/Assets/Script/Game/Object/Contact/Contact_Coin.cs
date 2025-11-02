@@ -3,13 +3,13 @@ using UnityEngine;
 public class Contact_Coin : Contact_abstract
 {
     [SerializeField]
-    int coins = 1; // æ“¾‚·‚éƒRƒCƒ“‚Ì”
+    int coins = 1; // å–å¾—ã™ã‚‹ã‚³ã‚¤ãƒ³ã®æ•°
     override protected void Contact(Collider2D collider)
     {
-        // ƒRƒCƒ“‚ğæ“¾‚µ‚½‚Æ‚«‚Ìˆ—
+        // ã‚³ã‚¤ãƒ³ã‚’å–å¾—ã—ãŸã¨ãã®å‡¦ç†
         //Debug.Log("Coin collected!");
-        Score.Instance().AddCoin(coins); // ƒXƒRƒA‚ğ‘‚â‚·
-        AudioManager.Instance().PlayOneShot(contactSound); // Œø‰Ê‰¹‚ğÄ¶
-        Destroy(gameObject); // ƒRƒCƒ“ƒIƒuƒWƒFƒNƒg‚ğíœ
+        Score.Instance().AddCoin(coins); // ã‚¹ã‚³ã‚¢ã‚’å¢—ã‚„ã™
+        AudioManager.Instance().PlayOneShot(contactSound); // åŠ¹æœéŸ³ã‚’å†ç”Ÿ
+        Destroy(gameObject); // ã‚³ã‚¤ãƒ³ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã‚’å‰Šé™¤
     }
 }
