@@ -4,7 +4,7 @@ using System.Linq;
 namespace Common
 {
     /// <summary>
-    /// Model‚âView‚É‰½‚ªÀ‘•‚³‚ê‚Ä‚¢‚é‚Ì‚©‚ğ”»•Ê‚·‚éˆ×‚Ì‚à‚ÌB
+    /// Modelã‚„Viewã«ä½•ãŒå®Ÿè£…ã•ã‚Œã¦ã„ã‚‹ã®ã‹ã‚’åˆ¤åˆ¥ã™ã‚‹ç‚ºã®ã‚‚ã®ã€‚
     /// </summary>
     public interface Presenter_interface
     {
