@@ -6,6 +6,7 @@ using Common;
 using InGame.Character;
 using R3;
 using R3.Triggers;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.UIElements;
@@ -282,7 +283,7 @@ public class Move_Rotate_OnGrounded : ModelBase, Move_interface, Camera_FollowTa
     private bool DetermineColliderBehavior(int vecX, int lastX)
     {
 
-        if (shape.shape.length >= 12) return true;
+        if (shape.shape.length < 12) return true;
 
         // 〇コライダーの透過/非透過設定.
         if (vecX == 0)
@@ -313,7 +314,7 @@ public class Move_Rotate_OnGrounded : ModelBase, Move_interface, Camera_FollowTa
                     return;
                 case GroundStatus.downhill:
                     HandleDownhillMovement(vecX);
-                    //if (beforeX == 0) SnapToGround(vecX);
+                    if (beforeX == 0) SnapToGround(vecX);
                     return;
                 case GroundStatus.junpRamp:
                 case GroundStatus.uphill:
@@ -336,7 +337,7 @@ public class Move_Rotate_OnGrounded : ModelBase, Move_interface, Camera_FollowTa
                 case GroundStatus.junpRamp:
                 case GroundStatus.uphill:
                 case GroundStatus.flat:
-                    //if(beforeX!=0) SnapToGround(beforeX);
+                    if(beforeX!=0) SnapToGround(beforeX);
                     return;
                 case GroundStatus.air:
                 default:
@@ -378,13 +379,9 @@ public class Move_Rotate_OnGrounded : ModelBase, Move_interface, Camera_FollowTa
         // 斜面を下る移動.
         float downhillSpeed = Speed * 1.2f; // 下り坂では少し速くなる
 
-        float angle = lastgroundAngle + ((3.14f/2) * vecX); // 角度に基づく速度調整
+        float angle = lastgroundAngle + 3.14f; // 角度に基づく速度調整
         // 通常の地面移動.
-        UnityEngine.Vector2 MoveDirection = new UnityEngine.Vector2(Mathf.Cos(angle),Mathf.Sin(angle));
-
-        //Debug.Log($"angle:{angle * Mathf.Rad2Deg},MoveDirection:{MoveDirection},checkRayGroundStatus:{checkRayGroundStatus}");
-
-        MoveDirection *= new UnityEngine.Vector2(downhillSpeed, 0);
+        UnityEngine.Vector2 MoveDirection = new UnityEngine.Vector2(downhillSpeed*vecX, 0) * new UnityEngine.Vector2(Mathf.Sin(angle), Mathf.Cos(angle));
         MoveDirection += new UnityEngine.Vector2(0, rb.linearVelocityY);
 
         rb.linearVelocity = MoveDirection;
@@ -401,10 +398,9 @@ public class Move_Rotate_OnGrounded : ModelBase, Move_interface, Camera_FollowTa
         rb.linearVelocity = new UnityEngine.Vector3(rb.linearVelocity.x * (1f - 1e-9f), rb.linearVelocity.y, 0);
     }
 
-    // 修:SnapToGround
     private void SnapToGround(int vecX)
     {
-        rb.linearVelocity = new UnityEngine.Vector2(0, rb.linearVelocityY*0.99f);
+        rb.linearVelocity = new UnityEngine.Vector2(rb.linearVelocityX * 0.2f, -1);
         //if (checkRayGroundStatus == GroundStatus.air)
         //{
         //    rb.linearVelocity = new UnityEngine.Vector2(0, rb.linearVelocityY);
