@@ -24,7 +24,7 @@ namespace InGame
         void Start()
         {
             inputActions = InputSystemActionsManager.Instance().GetInputSystem_Actions();
-            //circleCollider = GetComponent<CircleCollider2D>();
+            circleCollider = GetComponent<CircleCollider2D>();
             Shape = new Shape_Model(this, Point.GetComponent<SpriteRenderer>(), Point.GetComponent<EdgeCollider2D>(),3);
             Shape.Init();
 

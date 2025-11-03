@@ -83,3 +83,18 @@ crashlytics-build.properties
 /bloc/[Aa]ssets/Unity.VisualScripting.Generated/VisualScripting.Flow/UnitOptions.db.meta
 /bloc/[Aa]ssets/Unity.VisualScripting.Generated/VisualScripting.Core/Property Providers
 /bloc/[Aa]ssets/Unity.VisualScripting.Generated/VisualScripting.Core/Property Providers.meta
+
+# TextMesh Pro auto-generated assets
+/bloc/[Aa]ssets/TextMesh Pro/Resources/Fonts & Materials/*.asset
+/bloc/[Aa]ssets/TextMesh Pro/Resources/Sprite Assets/*.asset
+/bloc/[Aa]ssets/TextMesh Pro/Resources/Style Sheets/*.asset
+
+# NuGet packages (should be restored via packages.config)
+/bloc/[Aa]ssets/Packages/
+/bloc/[Aa]ssets/NuGet/
+
+# Addressables generated files
+/bloc/[Aa]ssets/AddressableAssetsData/AssetGroups/Schemas/
+/bloc/[Aa]ssets/AddressableAssetsData/DataBuilders/
+/bloc/ServerData/
+/bloc/[Aa]ssets/StreamingAssets/aa/
