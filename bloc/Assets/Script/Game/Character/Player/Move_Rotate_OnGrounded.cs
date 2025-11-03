@@ -27,7 +27,10 @@ public class Move_Rotate_OnGrounded : ModelBase, Move_interface, Camera_FollowTa
     {
         this.presenter = presenter;
         this.shape = shape;
+
         this.circleCollider = circleCollider;
+        // コライダーのisTrigger設定
+        if (this.circleCollider != null) this.circleCollider.isTrigger = true;
     }
 
     #region Fields and Properties
@@ -87,6 +90,7 @@ public class Move_Rotate_OnGrounded : ModelBase, Move_interface, Camera_FollowTa
         InitializeGroundDetection();
         SetCameraFollowTarget(presenter.transform);
 
+
         CanvasManager.Instance();
     }
 
@@ -123,18 +127,20 @@ public class Move_Rotate_OnGrounded : ModelBase, Move_interface, Camera_FollowTa
             if (circleCollider != null)
             {
                 // 移動入力時はfalse、それ以外はtrue
-                //circleCollider.isTrigger = DetermineColliderBehavior(vecX, lastX);
+                circleCollider.isTrigger = DetermineColliderBehavior(vecX, lastX);
+
+                
             }
 
-            // 物理マテリアルの摩擦設定
-            pm2d.friction = vecX == 0 ? 1f : 0f;
+                // 物理マテリアルの摩擦設定
+                pm2d.friction = vecX == 0 ? 1f : 0f;
 
             shape.edgeCollider.sharedMaterial = pm2d;
 
             // 入力と地面条件に基づく移動処理.
             ProcessMovementInput(vecX, lastX, beforeX);
 
-            //// === 回転処理 ===
+            // === 回転処理 ===
             ProcessRotationByGroundStatus(vecX, lastX);
 
             beforeX = vecX;
@@ -198,13 +204,6 @@ public class Move_Rotate_OnGrounded : ModelBase, Move_interface, Camera_FollowTa
         RaycastHit2D hit = RaycastWithDebug(origin, diagonalDirection, 2, Color.yellow);
 
         onground = (hit.collider != null);
-        //if (!onground)
-        //{
-        //    diagonalDirection = new UnityEngine.Vector2(-vecX, -1).normalized;
-        //    hit = RaycastWithDebug(origin, diagonalDirection, 2, Color.yellow);
-
-        //    onground = (hit.collider != null);
-        //}
         if (onground)
         {
             // 法線ベクトルを角度に変換
@@ -282,6 +281,9 @@ public class Move_Rotate_OnGrounded : ModelBase, Move_interface, Camera_FollowTa
     /// </summary>
     private bool DetermineColliderBehavior(int vecX, int lastX)
     {
+
+        if (shape.shape.length >= 12) return true;
+
         // 〇コライダーの透過/非透過設定.
         if (vecX == 0)
         {
@@ -334,7 +336,7 @@ public class Move_Rotate_OnGrounded : ModelBase, Move_interface, Camera_FollowTa
                 case GroundStatus.junpRamp:
                 case GroundStatus.uphill:
                 case GroundStatus.flat:
-                    if(beforeX!=0) SnapToGround(beforeX);
+                    //if(beforeX!=0) SnapToGround(beforeX);
                     return;
                 case GroundStatus.air:
                 default:
@@ -354,13 +356,13 @@ public class Move_Rotate_OnGrounded : ModelBase, Move_interface, Camera_FollowTa
             rb.linearVelocity = new UnityEngine.Vector2(0,rb.linearVelocityY);
         }
 
-        float angle = lastgroundAngle + ((3.14f / 2) * vecX); // 角度に基づく速度調整
+        //float angle = lastgroundAngle + ((3.14f / 2) * vecX); // 角度に基づく速度調整
         // 通常の地面移動.
-        UnityEngine.Vector2 MoveDirection = new UnityEngine.Vector2(Mathf.Cos(angle), Mathf.Sin(angle));
+        //UnityEngine.Vector2 MoveDirection = new UnityEngine.Vector2(Mathf.Cos(angle), Mathf.Sin(angle));
 
         //Debug.Log($"angle:{angle * Mathf.Rad2Deg},MoveDirection:{MoveDirection},checkRayGroundStatus:{checkRayGroundStatus}");
-        
-        MoveDirection *= new UnityEngine.Vector2(Speed, 0);
+
+        UnityEngine.Vector2 MoveDirection = new UnityEngine.Vector2(Speed * vecX, 0);
         MoveDirection += new UnityEngine.Vector2(0, rb.linearVelocityY);
 
         rb.linearVelocity = MoveDirection;
