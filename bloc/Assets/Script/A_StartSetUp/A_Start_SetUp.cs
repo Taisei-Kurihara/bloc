@@ -6,11 +6,9 @@ using UnityEngine.SceneManagement;
 public class A_Start_SetUp : MonoBehaviour
 {
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
-    //[InitializeOnLoadMethod]
     static void Init()
     {
         Debug.Log("実行開始時に呼ばれた (AfterSceneLoad)");
-
 
         // StartCoroutine/UniTaskで非同期呼び出し
         _ = InitAsync();
