@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class Shape_Model : ModelBase , Shape_interface
 {
-    public Shape_Model(PresenterBase presenter, SpriteRenderer spriteRenderer, EdgeCollider2D edgeCollider,int An = 4) : base(presenter)
+    public Shape_Model(PresenterBase presenter, SpriteRenderer spriteRenderer, EdgeCollider2D edgeCollider,CircleCollider2D circleCollider, int An = 4) : base(presenter)
     {
         this.presenter = presenter;
         N_Angular = An;
@@ -13,7 +13,10 @@ public class Shape_Model : ModelBase , Shape_interface
         this.edgeCollider = edgeCollider;
 
         offsetobj = edgeCollider.transform;
-        //DebugeN_AngularUpdate();
+
+        this.circleCollider = circleCollider;
+        // コライダーのisTrigger設定
+        if (this.circleCollider != null) this.circleCollider.isTrigger = true;
     }
 
     [SerializeField]
@@ -25,11 +28,13 @@ public class Shape_Model : ModelBase , Shape_interface
 
     public EdgeCollider2D edgeCollider { get; private set; }
 
-    public Shape shape { get; private set; }
+    public Shape_PolygonGenerator shape { get; private set; }
+
+    public CircleCollider2D circleCollider { get; private set; }
 
     public override void Init()
     {
-        this.shape = new Shape(N_Angular);
+        this.shape = new Shape_PolygonGenerator(N_Angular);
         SetAll();
         DebugeLineUpdate();
     }
@@ -46,8 +51,6 @@ public class Shape_Model : ModelBase , Shape_interface
         // 表示・当たり判定を更新
         SetSprite();
         SetColl();
-
-        //UnityEditor.EditorApplication.isPaused = true;
     }
 
 
@@ -75,7 +78,18 @@ public class Shape_Model : ModelBase , Shape_interface
 
     void SetColl()
     {
-        edgeCollider.points = shape.ColliderPoints;
+        // (既)修: circleCollider.の半径をversizeで設定
+        circleCollider.radius = shape.versize / 100f;
+
+        if (shape.length >= 24)
+        {
+            edgeCollider.points = new Vector2[2] { Vector2.zero,Vector2.zero };
+            circleCollider.isTrigger = false;
+        }
+        else
+        {
+            edgeCollider.points = shape.ColliderPoints;
+        }
     }
 
     #region debug
@@ -107,13 +121,13 @@ public class Shape_Model : ModelBase , Shape_interface
 
 
 
-public class Shape
+public class Shape_PolygonGenerator
 {
     #region Setフィールド
 
     #region メソッド
 
-    public Shape(int N_Angular = 3,float size = 100 , bool flatDown = true)
+    public Shape_PolygonGenerator(int N_Angular = 3,float size = 100 , bool flatDown = true)
     {
         versize = size;
         ShapeSetNAnglar(N_Angular, flatDown);

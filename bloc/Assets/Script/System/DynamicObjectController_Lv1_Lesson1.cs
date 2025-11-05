@@ -133,7 +133,6 @@ public class DynamicObjectController_Lv1_Lesson1 : DynamicObjectController_inter
             .Subscribe(async _ =>
             {
                 Debug.Log("[Lv1_Lesson1] Player landed (not Air)");
-                // (既)修:ここで二秒待機を実装してください.
                 await UniTask.Delay(System.TimeSpan.FromSeconds(0.75f));
                 Debug.Log("[Lv1_Lesson1] 2秒待機完了");
                 // ここに接地時に一回だけ実行したい処理を追加.
@@ -316,7 +315,6 @@ public class DynamicObjectController_Lv1_Lesson1 : DynamicObjectController_inter
 
     public async UniTask OnBeforeFadeLoadAsync()
     {
-        //(既)修:log追加
         Debug.Log("[Lv1_Lesson1] OnBeforeFadeLoadAsync 開始");
         TextUpdate().Forget();
         ButtonSet();

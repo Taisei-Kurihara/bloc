@@ -24,11 +24,10 @@ namespace InGame
         void Start()
         {
             inputActions = InputSystemActionsManager.Instance().GetInputSystem_Actions();
-            circleCollider = GetComponent<CircleCollider2D>();
-            Shape = new Shape_Model(this, Point.GetComponent<SpriteRenderer>(), Point.GetComponent<EdgeCollider2D>(),3);
+            Shape = new Shape_Model(this, Point.GetComponent<SpriteRenderer>(), Point.GetComponent<EdgeCollider2D>(), GetComponent<CircleCollider2D>(), 3);
             Shape.Init();
 
-            Move = new Move_Rotate_OnGrounded(this, Shape, circleCollider);
+            Move = new Move_Rotate_OnGrounded(this, Shape);
             Move.Init();
             Observable.EveryUpdate().Subscribe(_ => { UpdateController(); }).AddTo(this);
 

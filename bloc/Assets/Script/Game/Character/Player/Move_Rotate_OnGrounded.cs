@@ -24,29 +24,25 @@ public enum GroundStatus
 
 public class Move_Rotate_OnGrounded : ModelBase, Move_interface, Camera_FollowTarget_interface
 {
-    public Move_Rotate_OnGrounded(PresenterBase presenter,Shape_interface shape, CircleCollider2D circleCollider) : base(presenter)
+    public Move_Rotate_OnGrounded(PresenterBase presenter,Shape_interface shape) : base(presenter)
     {
         this.presenter = presenter;
         this.shape = shape;
-
-        this.circleCollider = circleCollider;
-        // コライダーのisTrigger設定
-        if (this.circleCollider != null) this.circleCollider.isTrigger = true;
     }
 
     #region Fields and Properties
     
     // コアコンポーネント
     private Shape_interface shape { get; set; }
-    private CircleCollider2D circleCollider;
     private Rigidbody2D rb;
     private IDisposable Dismove;
     private IDisposable Disgravity;
 
     // 移動パラメータ
     [SerializeField] private float Speed = 10f;
-    [SerializeField] private float JumpPower = 15.0f;
-    [SerializeField] private float GravityPower = -9.8f;
+    [SerializeField] private float JumpPower = 40.0f;
+    [SerializeField] private float GravityPower = -75f;
+    [SerializeField] private float spinSpeed = 8f;
     [SerializeField] private int maxJumpCount = 1;
     
     // 斜面と地面の定数
@@ -69,8 +65,10 @@ public class Move_Rotate_OnGrounded : ModelBase, Move_interface, Camera_FollowTa
     // 実行時変数
     private UnityEngine.Vector3 move;
     private ReactiveProperty<int> JunpCount = new ReactiveProperty<int>(0);
-    private float spinSpeed = 6f;
-    
+
+    // カメラターゲット
+    private Transform cameraFollowTarget;
+
     // 物理マテリアル
     private PhysicsMaterial2D pm2d = new PhysicsMaterial2D("DynamicMaterial") { friction = 0, bounciness = 0 };
 
@@ -123,26 +121,29 @@ public class Move_Rotate_OnGrounded : ModelBase, Move_interface, Camera_FollowTa
 
             lastX = (vecX != 0) ? vecX : (checkRayGroundStatus != GroundStatus.air) ? 0 : lastX;
 
+            CameraFollowOfset(vecX, lastX, beforeX);
 
             // コライダーのisTrigger設定
-            if (circleCollider != null)
+            if (shape.circleCollider != null)
             {
                 // 移動入力時はfalse、それ以外はtrue
-                circleCollider.isTrigger = DetermineColliderBehavior(vecX, lastX);
-
-                
+                shape.circleCollider.isTrigger = DetermineColliderBehavior(vecX, lastX);
+                //shape.circleCollider.isTrigger = true;
             }
 
                 // 物理マテリアルの摩擦設定
                 pm2d.friction = vecX == 0 ? 1f : 0f;
 
             shape.edgeCollider.sharedMaterial = pm2d;
+            shape.circleCollider.sharedMaterial = pm2d;
 
             // 入力と地面条件に基づく移動処理.
             ProcessMovementInput(vecX, lastX, beforeX);
 
             // === 回転処理 ===
             ProcessRotationByGroundStatus(vecX, lastX);
+
+
 
             beforeX = vecX;
 
@@ -181,7 +182,7 @@ public class Move_Rotate_OnGrounded : ModelBase, Move_interface, Camera_FollowTa
         if (vecX != 0)
         {
             UnityEngine.Vector2 horizontalDirection = new UnityEngine.Vector2(vecX, 0);
-            RaycastHit2D horizontalHit = RaycastWithDebug(origin, horizontalDirection, 1.3f, Color.cyan);
+            RaycastHit2D horizontalHit = RaycastWithDebug(origin, horizontalDirection, 1.5f, Color.cyan);
 
             if (horizontalHit.collider != null)
             {
@@ -190,11 +191,19 @@ public class Move_Rotate_OnGrounded : ModelBase, Move_interface, Camera_FollowTa
                 horizontalSlopeAngle -= 90f; // 地面の傾きに変換.
 
                 const float EPSILON = 0.01f; // 誤差許容値.
+                const float WALL_ANGLE_THRESHOLD = 75f; // 75度以上が壁.
+                bool isWall = (Mathf.Abs(horizontalSlopeAngle) + EPSILON >= WALL_ANGLE_THRESHOLD);
                 bool isHorizontalSteep = (Mathf.Abs(horizontalSlopeAngle) + EPSILON >= MAX_SLOPE_ANGLE);
+
+                if (isWall)
+                {
+                    SetGroundStatus(GroundStatus.wall, "壁 : 横方向75度以上");
+                    return;
+                }
 
                 if (isHorizontalSteep)
                 {
-                    SetGroundStatus(GroundStatus.wall, "壁 : 横方向急坂");
+                    SetGroundStatus(GroundStatus.steepSlope, "急坂 : 横方向45度以上75度未満");
                     return;
                 }
             }
@@ -214,7 +223,7 @@ public class Move_Rotate_OnGrounded : ModelBase, Move_interface, Camera_FollowTa
 
             // 地面方向に向かってrayを飛ばす.
             diagonalDirection = new UnityEngine.Vector2(Mathf.Cos(lastgroundAngle), Mathf.Sin(lastgroundAngle));
-            RaycastHit2D groundHit = RaycastWithDebug(origin, diagonalDirection, 1.3f, Color.green);
+            RaycastHit2D groundHit = RaycastWithDebug(origin, diagonalDirection, 2, Color.green);
 
             onground = (groundHit.collider != null);
 
@@ -275,6 +284,40 @@ public class Move_Rotate_OnGrounded : ModelBase, Move_interface, Camera_FollowTa
 
     #endregion
 
+
+    #region Camera System
+
+    private void CameraFollowOfset(int vecX, int lastX, int beforeX)
+    {
+        if(vecX != 0)
+        {
+            if(checkRayGroundStatus == GroundStatus.air)
+            {
+                cameraFollowTarget.position = presenter.transform.position;
+                return;
+            }
+            UnityEngine.Vector2 origin = presenter.transform.position;
+            RaycastHit2D hit = RaycastWithDebug(origin, UnityEngine.Vector2.down, 2f, Color.magenta);
+
+            if (hit.collider != null)
+            {
+                UnityEngine.Vector2 targetPosition = hit.point + UnityEngine.Vector2.up;
+                cameraFollowTarget.position = targetPosition;
+            }
+            else
+            {
+                cameraFollowTarget.position = presenter.transform.position;
+            }
+        }
+        else
+        {
+            cameraFollowTarget.position = presenter.transform.position;
+            return;
+        }
+    }
+
+    #endregion
+
     #region CircleCollider System
 
     /// <summary>
@@ -282,10 +325,10 @@ public class Move_Rotate_OnGrounded : ModelBase, Move_interface, Camera_FollowTa
     /// </summary>
     private bool DetermineColliderBehavior(int vecX, int lastX)
     {
-
+        // 〇コライダーの透過/非透過設定.
+        if (shape.shape.length >= 24) return false;
         if (shape.shape.length < 12) return true;
 
-        // 〇コライダーの透過/非透過設定.
         if (vecX == 0)
         {
             return (checkRayGroundStatus != GroundStatus.steepSlope);
@@ -308,6 +351,7 @@ public class Move_Rotate_OnGrounded : ModelBase, Move_interface, Camera_FollowTa
             switch (checkRayGroundStatus)
             {
                 case GroundStatus.wall:
+                    HandleNormalGroundMovement(vecX);
                     return;
                 case GroundStatus.steepSlope:
                     SteepSlopeInertia();
@@ -330,6 +374,7 @@ public class Move_Rotate_OnGrounded : ModelBase, Move_interface, Camera_FollowTa
             switch (checkRayGroundStatus)
             {
                 case GroundStatus.wall:
+                    AirInertia();
                     return;
                 case GroundStatus.steepSlope:
                     return;
@@ -356,12 +401,6 @@ public class Move_Rotate_OnGrounded : ModelBase, Move_interface, Camera_FollowTa
         {
             rb.linearVelocity = new UnityEngine.Vector2(0,rb.linearVelocityY);
         }
-
-        //float angle = lastgroundAngle + ((3.14f / 2) * vecX); // 角度に基づく速度調整
-        // 通常の地面移動.
-        //UnityEngine.Vector2 MoveDirection = new UnityEngine.Vector2(Mathf.Cos(angle), Mathf.Sin(angle));
-
-        //Debug.Log($"angle:{angle * Mathf.Rad2Deg},MoveDirection:{MoveDirection},checkRayGroundStatus:{checkRayGroundStatus}");
 
         UnityEngine.Vector2 MoveDirection = new UnityEngine.Vector2(Speed * vecX, 0);
         MoveDirection += new UnityEngine.Vector2(0, rb.linearVelocityY);
@@ -401,22 +440,6 @@ public class Move_Rotate_OnGrounded : ModelBase, Move_interface, Camera_FollowTa
     private void SnapToGround(int vecX)
     {
         rb.linearVelocity = new UnityEngine.Vector2(rb.linearVelocityX * 0.2f, -1);
-        //if (checkRayGroundStatus == GroundStatus.air)
-        //{
-        //    rb.linearVelocity = new UnityEngine.Vector2(0, rb.linearVelocityY);
-        //}
-
-        //float angle = lastgroundAngle; // 角度に基づく速度調整
-        //// 通常の地面移動.
-        //UnityEngine.Vector2 MoveDirection = new UnityEngine.Vector2(Mathf.Cos(angle), Mathf.Sin(angle));
-
-        //Debug.Log($"angle:{angle * Mathf.Rad2Deg},MoveDirection:{MoveDirection},checkRayGroundStatus:{checkRayGroundStatus}");
-
-
-        //MoveDirection *= new UnityEngine.Vector2(0,10);
-        //MoveDirection += new UnityEngine.Vector2(0, rb.linearVelocityY);
-
-        //rb.linearVelocity = MoveDirection;
     }
 
     #endregion
@@ -526,41 +549,21 @@ public class Move_Rotate_OnGrounded : ModelBase, Move_interface, Camera_FollowTa
     /// </summary>
     public void InitializeGroundDetection()
     {
-        // (既)修: jump回数がリセットされた時何処でリセットされたかをログに出す.
         // 地面に接地しているかの判定. 厳密にEdgeColliderの衝突判定で行う.
         shape.edgeCollider
             .OnCollisionStay2DAsObservable()
             .Where(collider => collider.gameObject.layer == LayerMask.NameToLayer("Default")) // 地面のレイヤーを指定
             .Subscribe(collider =>
             {
+                HitColl(collider);
+            }).AddTo(presenter);
 
-                if (JunpCount.Value != 0 && rb.linearVelocityY <= 0.5f)
-                {
-                    // 衝突点の法線方向を取得して急坂判定を行う.
-                    ContactPoint2D[] contacts = new ContactPoint2D[collider.contactCount];
-                    collider.GetContacts(contacts);
-
-                    bool isSteepSlope = false;
-                    foreach (var contact in contacts)
-                    {
-                        float slopeAngle = Mathf.Atan2(contact.normal.y, contact.normal.x) * Mathf.Rad2Deg;
-                        slopeAngle -= 90f; // 地面の傾きに変換.
-
-                        const float EPSILON = 0.01f; // 誤差許容値.
-                        if (Mathf.Abs(slopeAngle) + EPSILON >= MAX_SLOPE_ANGLE)
-                        {
-                            isSteepSlope = true;
-                            break;
-                        }
-                    }
-
-                    // 急坂でない場合のみjump回数をリセット.
-                    if (!isSteepSlope)
-                    {
-                        Debug.Log("Jump回数リセット: EdgeCollider接地判定 (急坂でない)");
-                        JunpCount.Value = 0;
-                    }
-                }
+        shape.circleCollider
+            .OnCollisionStay2DAsObservable()
+            .Where(collider => collider.gameObject.layer == LayerMask.NameToLayer("Default")) // 地面のレイヤーを指定
+            .Subscribe(collider =>
+            {
+                HitColl(collider);
             }).AddTo(presenter);
 
         // jump回数リセット. ( 既jump時 && 非上昇時 ) 地面に接地していたらリセット.
@@ -589,6 +592,38 @@ public class Move_Rotate_OnGrounded : ModelBase, Move_interface, Camera_FollowTa
                 rb.angularVelocity = 0;
                 JunpCount.Value = 0;
             }).AddTo(presenter);
+    }
+
+    private void HitColl(Collision2D collider)
+    {
+
+        if (JunpCount.Value != 0 && rb.linearVelocityY <= 0.5f)
+        {
+            // 衝突点の法線方向を取得して急坂判定を行う.
+            ContactPoint2D[] contacts = new ContactPoint2D[collider.contactCount];
+            collider.GetContacts(contacts);
+
+            bool isSteepSlope = false;
+            foreach (var contact in contacts)
+            {
+                float slopeAngle = Mathf.Atan2(contact.normal.y, contact.normal.x) * Mathf.Rad2Deg;
+                slopeAngle -= 90f; // 地面の傾きに変換.
+
+                const float EPSILON = 0.01f; // 誤差許容値.
+                if (Mathf.Abs(slopeAngle) + EPSILON >= MAX_SLOPE_ANGLE)
+                {
+                    isSteepSlope = true;
+                    break;
+                }
+            }
+
+            // 急坂でない場合のみjump回数をリセット.
+            if (!isSteepSlope)
+            {
+                Debug.Log("Jump回数リセット: EdgeCollider接地判定 (急坂でない)");
+                JunpCount.Value = 0;
+            }
+        }
     }
 
     private bool GroundCheckRay(float length = 1.1f)
@@ -654,6 +689,11 @@ public class Move_Rotate_OnGrounded : ModelBase, Move_interface, Camera_FollowTa
 
     public void SetCameraFollowTarget(Transform target)
     {
-        CameraManager.Instance().TrackingTargetTransform = target;
+        GameObject cameraTargetObj = new GameObject("CameraFollowTarget");
+        cameraTargetObj.transform.position = target.position;
+        cameraTargetObj.transform.SetParent(target);
+        cameraFollowTarget = cameraTargetObj.transform;
+
+        CameraManager.Instance().TrackingTargetTransform = cameraFollowTarget;
     }
 }
