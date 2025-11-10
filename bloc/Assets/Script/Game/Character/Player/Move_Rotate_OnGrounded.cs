@@ -41,8 +41,8 @@ public class Move_Rotate_OnGrounded : ModelBase, Move_interface, Camera_FollowTa
     // 移動パラメータ
     [SerializeField] private float Speed = 10f;
     [SerializeField] private float JumpPower = 40.0f;
-    [SerializeField] private float GravityPower = -75f;
-    [SerializeField] private float spinSpeed = 8f;
+    [SerializeField] private float GravityPower = -60f;
+    [SerializeField] private float spinSpeed = 6f;
     [SerializeField] private int maxJumpCount = 1;
     
     // 斜面と地面の定数
