@@ -9,32 +9,21 @@ public enum CurrentLayer
     EnemyAttack
 }
 
-public enum Hitstatus
-{
-    None,
-    Player,
-    NPC,
-    Enemy,
-    Attack,
-    Support,
-    Guard
-}
-
 public abstract class Attack_abstract : MonoBehaviour
 {
-    private Hitstatus master;
+    private ContactType master;
 
     // CurrentLayerを取得・設定するプロパティ.
-    public Hitstatus Master
+    public ContactType Master
     {
         get { return master; }
         set { master = value; }
     }
 
-    private List<Hitstatus> hitDefaultTargets = new List<Hitstatus>();
+    private List<ContactType> hitDefaultTargets = new List<ContactType>();
 
     // Hit対象を取得・設定するプロパティ.
-    public List<Hitstatus> HitDefaultTargets
+    public List<ContactType> HitDefaultTargets
     {
         get { return hitDefaultTargets; }
         set { hitDefaultTargets = value; }

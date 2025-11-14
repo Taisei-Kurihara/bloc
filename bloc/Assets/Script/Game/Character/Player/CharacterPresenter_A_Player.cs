@@ -7,12 +7,13 @@ using UnityEngine.SceneManagement;
 using static UnityEngine.Rendering.ProbeAdjustmentVolume;
 namespace InGame
 {
-    public class Player_Presenter : PresenterBase, Presenter_interface
+    public class CharacterPresenter_A_Player : CharacterPresenterBase, Presenter_interface
     {
         object Presenter_interface.View => new View();
 
         public Move_interface Move { get; private set; }
         public Shape_interface Shape { get; private set; }
+        public Status_abstract Status { get; private set; }
 
         InputSystem_Actions inputActions;
 
@@ -29,6 +30,11 @@ namespace InGame
 
             Move = new Move_Rotate_OnGrounded(this, Shape);
             Move.Init();
+
+            Status = gameObject.AddComponent<Status_BattleCharacter_default>();
+            ((Status_BattleCharacter_default)Status).Initialize(this, ContactType.Player);
+            Status.Init();
+
             Observable.EveryUpdate().Subscribe(_ => { UpdateController(); }).AddTo(this);
 
         }

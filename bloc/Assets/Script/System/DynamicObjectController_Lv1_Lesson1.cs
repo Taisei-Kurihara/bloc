@@ -105,7 +105,7 @@ public class DynamicObjectController_Lv1_Lesson1 : DynamicObjectController_inter
         GameObject Player_Instance = DynamicObjectController_Game_Default.Instance().GetPlayer_Instance;
         Debug.Log("[Lv1_Lesson1] Player_Instance 取得完了");
 
-        var presenter = Player_Instance.GetComponent<Player_Presenter>();
+        var presenter = Player_Instance.GetComponent<CharacterPresenter_A_Player>();
         Debug.Log("[Lv1_Lesson1] Player_Presenter 取得待機中");
         await UniTask.WaitUntil(() => presenter != null && presenter.Move != null);
         Debug.Log("[Lv1_Lesson1] Player_Presenter 取得完了");
@@ -297,7 +297,7 @@ public class DynamicObjectController_Lv1_Lesson1 : DynamicObjectController_inter
         GameObject Player_Instance = DynamicObjectController_Game_Default.Instance().GetPlayer_Instance;
         if (Player_Instance != null)
         {
-            var presenter = Player_Instance.GetComponent<Player_Presenter>();
+            var presenter = Player_Instance.GetComponent<CharacterPresenter_A_Player>();
             if (presenter != null)
             {
                 presenter.ShapeSet(shape);

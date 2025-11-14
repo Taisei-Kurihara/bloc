@@ -1,0 +1,10 @@
+using UnityEngine;
+
+public abstract class Status_BattleCharacter_abstract : Status_abstract
+{
+    protected ContactType hitstatus;
+
+    public override void Init()
+    {
+    }
+}

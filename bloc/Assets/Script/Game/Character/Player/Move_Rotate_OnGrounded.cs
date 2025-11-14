@@ -24,7 +24,7 @@ public enum GroundStatus
 
 public class Move_Rotate_OnGrounded : ModelBase, Move_interface, Camera_FollowTarget_interface
 {
-    public Move_Rotate_OnGrounded(PresenterBase presenter,Shape_interface shape) : base(presenter)
+    public Move_Rotate_OnGrounded(CharacterPresenterBase presenter,Shape_interface shape) : base(presenter)
     {
         this.presenter = presenter;
         this.shape = shape;

@@ -9,7 +9,7 @@ public abstract class UI_OneSet_abstract : MonoBehaviour
     [SerializeField]
     protected Image highlightImage { get; set; }
     private CancellationTokenSource _highlightCts;
-
+    
     protected RectTransform rectTransform { get; private set; }
 
     protected virtual void Awake()

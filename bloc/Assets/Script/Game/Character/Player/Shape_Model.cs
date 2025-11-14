@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class Shape_Model : ModelBase , Shape_interface
 {
-    public Shape_Model(PresenterBase presenter, SpriteRenderer spriteRenderer, EdgeCollider2D edgeCollider,CircleCollider2D circleCollider, int An = 4) : base(presenter)
+    public Shape_Model(CharacterPresenterBase presenter, SpriteRenderer spriteRenderer, EdgeCollider2D edgeCollider,CircleCollider2D circleCollider, int An = 4) : base(presenter)
     {
         this.presenter = presenter;
         N_Angular = An;
@@ -45,20 +45,14 @@ public class Shape_Model : ModelBase , Shape_interface
         SetAll();
         DebugeLineUpdate();
     }
+
     void SetAll()
     {
-
         // 表示・当たり判定を更新
         SetSprite();
         SetColl();
     }
 
-
-    void SetSprite(int An)
-    {
-        shape.ShapeSetNAnglar(An, true);
-        SetSprite();
-    }
 
     void SetSprite()
     {
@@ -69,16 +63,8 @@ public class Shape_Model : ModelBase , Shape_interface
 
     }
 
-
-    void SetColl(int An)
-    {
-        shape.ShapeSetNAnglar(An, true);
-        SetColl();
-    }
-
     void SetColl()
     {
-        // (既)修: circleCollider.の半径をversizeで設定
         circleCollider.radius = shape.versize / 100f;
 
         if (shape.length >= 24)
