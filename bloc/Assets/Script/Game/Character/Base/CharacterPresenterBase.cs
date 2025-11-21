@@ -1,10 +1,10 @@
 using UnityEngine;
 
-public class CharacterPresenterBase : MonoBehaviour
+public abstract class CharacterPresenterBase : MonoBehaviour
 {
     Move_interface Move { get; }
 
     Shape_interface Shape { get; }
 
-    Status_abstract Status { get; }
+    Status_abstract<StatusInitialize_abstract> Status { get; }
 }

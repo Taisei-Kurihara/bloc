@@ -16,6 +16,9 @@ public class Start_SetUp : MonoBehaviour
 
     static async UniTaskVoid InitAsync()
     {
+
+        ShapeUnitCirclePolygonManager.Instance().InitializeShapesAsync().Forget();
+
         string currentSceneName = SceneManager.GetActiveScene().name;
         if (System.Enum.TryParse<UseScene>(currentSceneName, out UseScene currentScene))
         {

@@ -22,9 +22,9 @@ public enum GroundStatus
     wall = 6 // 壁.
 }
 
-public class Move_Rotate_OnGrounded : ModelBase, Move_interface, Camera_FollowTarget_interface
+public class Move_Rotate_OnGrounded_PlayerInput : ModelBase, Move_interface, Camera_FollowTarget_interface
 {
-    public Move_Rotate_OnGrounded(CharacterPresenterBase presenter,Shape_interface shape) : base(presenter)
+    public Move_Rotate_OnGrounded_PlayerInput(CharacterPresenterBase presenter,Shape_interface shape) : base(presenter)
     {
         this.presenter = presenter;
         this.shape = shape;

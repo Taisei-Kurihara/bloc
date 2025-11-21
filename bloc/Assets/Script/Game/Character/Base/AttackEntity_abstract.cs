@@ -76,7 +76,7 @@ public abstract class AttackEntity_abstract : ModelBase
             .Where(collider => collider.gameObject.layer == LayerMask.NameToLayer("Default")) // 地面のレイヤーを指定
             .Subscribe(collider =>
             {
-                Status_abstract status = collider.GetComponent<Status_abstract>();
+                Status_abstract<StatusInitialize_abstract> status = collider.GetComponent<Status_abstract<StatusInitialize_abstract>>();
 
                 if (status != null && status.masterHitstatus != null)
                 {
@@ -107,7 +107,7 @@ public abstract class AttackEntity_abstract : ModelBase
     }
 
     // Hit対象に当たった時に呼び出されるvirtual関数.
-    protected virtual void OnHitTarget(Status_abstract target)
+    protected virtual void OnHitTarget(Status_abstract<StatusInitialize_abstract> target)
     {
 
     }

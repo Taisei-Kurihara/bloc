@@ -7,7 +7,7 @@ public class CharacterPresenter_B_AttackEntity_default : CharacterPresenterBase,
 
     public Move_interface Move { get; private set; }
     public Shape_interface Shape { get; private set; }
-    public Status_abstract Status { get; private set; }
+    public Status_abstract<StatusInitialize_abstract> Status { get; private set; }
 
     public AttackEntity_abstract Attack { get; private set; }
 
@@ -19,10 +19,10 @@ public class CharacterPresenter_B_AttackEntity_default : CharacterPresenterBase,
     {
     }
 
-    public void ShapeSet(int shape)
+    public async void ShapeSet(int shape)
     {
 
-        Shape.SetShape(shape);
+        await Shape.SetShapeAsync(shape);
         Debug.Log($"[Player_Presenter] Shape set to {shape}");
     }
 }

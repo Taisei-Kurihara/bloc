@@ -110,7 +110,7 @@ public class DynamicObjectController_Lv1_Lesson1 : DynamicObjectController_inter
         await UniTask.WaitUntil(() => presenter != null && presenter.Move != null);
         Debug.Log("[Lv1_Lesson1] Player_Presenter 取得完了");
 
-        var moveRotateOnGrounded = presenter.Move as Move_Rotate_OnGrounded;
+        var moveRotateOnGrounded = presenter.Move as Move_Rotate_OnGrounded_PlayerInput;
         if (moveRotateOnGrounded == null)
         {
             Debug.LogError("[Lv1_Lesson1] Move is not Move_Rotate_OnGrounded");

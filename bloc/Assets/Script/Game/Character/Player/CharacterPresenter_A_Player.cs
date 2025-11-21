@@ -13,7 +13,7 @@ namespace InGame
 
         public Move_interface Move { get; private set; }
         public Shape_interface Shape { get; private set; }
-        public Status_abstract Status { get; private set; }
+        public Status_abstract<StatusInitialize_abstract> Status { get; private set; }
 
         InputSystem_Actions inputActions;
 
@@ -22,17 +22,20 @@ namespace InGame
 
         CircleCollider2D circleCollider;
 
-        void Start()
+        async void Start()
         {
             inputActions = InputSystemActionsManager.Instance().GetInputSystem_Actions();
-            Shape = new Shape_Model(this, Point.GetComponent<SpriteRenderer>(), Point.GetComponent<EdgeCollider2D>(), GetComponent<CircleCollider2D>(), 3);
+            Shape = new Shape_Model_Player(this, Point.GetComponent<SpriteRenderer>(), Point.GetComponent<EdgeCollider2D>(), GetComponent<CircleCollider2D>(), 3);
             Shape.Init();
 
-            Move = new Move_Rotate_OnGrounded(this, Shape);
+            // Shape の非同期初期化を待機.
+            await ((Shape_Model_Player)Shape).InitAsync();
+
+            Move = new Move_Rotate_OnGrounded_PlayerInput(this, Shape);
             Move.Init();
 
             Status = gameObject.AddComponent<Status_BattleCharacter_default>();
-            ((Status_BattleCharacter_default)Status).Initialize(this, ContactType.Player);
+            ((Status_BattleCharacter_default)Status).Initialize(new StatusInitialize_Default(this, ContactType.Player));
             Status.Init();
 
             Observable.EveryUpdate().Subscribe(_ => { UpdateController(); }).AddTo(this);
@@ -50,10 +53,10 @@ namespace InGame
         {
         }
 
-        public void ShapeSet(int shape)
+        public async void ShapeSet(int shape)
         {
 
-            Shape.SetShape(shape);
+            await Shape.SetShapeAsync(shape);
             Debug.Log($"[Player_Presenter] Shape set to {shape}");
         }
     }
