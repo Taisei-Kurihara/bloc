@@ -10,7 +10,6 @@ public abstract class Shape_Model_abstract : ModelBase, Shape_interface
         this.presenter = presenter;
     }
 
-    // (既)修:Shape_Model_abstractのshapeはShapeStatus型にして生成処理はShapeUnitCirclePolygonManagerのGetOrCreateShapeStatusAsyncを呼びだす
     // 上:Shape_Model_abstractで生成処理を呼びだす関数はUniTask型で待機処理させるようにしてください
 
     protected ShapeCompStatus _shapeComp;

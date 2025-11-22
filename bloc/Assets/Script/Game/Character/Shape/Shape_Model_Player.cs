@@ -27,7 +27,6 @@ public class Shape_Model_Player : Shape_Model_abstract
 
     public override void Init()
     {
-        // (既)修:GetOrCreateShapeAsyncを呼び出してshapeを取得 await で待機
         // 非同期初期化はInitAsyncで行う.
         DebugeLineUpdate();
     }

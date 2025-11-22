@@ -24,8 +24,8 @@ public abstract class Status_abstract<TIni> : MonoBehaviour, IModelBase where TI
         set => status.hpMax = value;
     }
 
-    protected virtual ChangeHP defaultDamage { get; set; }
-    protected virtual ChangeHP defaultHeal { get; set; }
+    protected virtual ChangeHP defaultDamage { get; set; } = new ChangeHP_Damage_Default();
+    protected virtual ChangeHP defaultHeal { get; set; } = new ChangeHP_Heal_Default();
 
     public abstract void Init();
 
@@ -34,13 +34,13 @@ public abstract class Status_abstract<TIni> : MonoBehaviour, IModelBase where TI
         StatusIni = ini;
     }
 
-    protected virtual async UniTask OnDamaged(float damage, ChangeHP aschangeHP = null)
+    public virtual async UniTask OnDamaged(float damage, ChangeHP aschangeHP = null)
     {
         aschangeHP ??= defaultDamage;
         aschangeHP.OnHPChange(this, damage);
     }
 
-    protected virtual async UniTask OnHeal(float heal, ChangeHP aschangeHP = null)
+    public virtual async UniTask OnHeal(float heal, ChangeHP aschangeHP = null)
     {
         aschangeHP ??= defaultHeal;
         aschangeHP.OnHPChange(this , heal);
