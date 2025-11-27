@@ -14,10 +14,12 @@ namespace InGame
         private Move_interface _move;
         private Shape_interface _shape;
         private IStatus_base _status;
+        private Input_AI_PlayerInput _status_base;
 
         public override Move_interface Move { get => _move; protected set => _move = value; }
         public override Shape_interface Shape { get => _shape; protected set => _shape = value; }
         public override IStatus_base Status { get => _status; protected set => _status = value; }
+        public override Input_AI_abstract Input { get => _status_base; protected set => _status_base = (Input_AI_PlayerInput)value; }
 
         InputSystem_Actions inputActions;
 
@@ -44,6 +46,8 @@ namespace InGame
 
             Observable.EveryUpdate().Subscribe(_ => { UpdateController(); }).AddTo(this);
 
+            Input = new Input_AI_PlayerInput(this);
+            Input.Init();
         }
 
         /// <summary>

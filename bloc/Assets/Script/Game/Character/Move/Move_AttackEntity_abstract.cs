@@ -11,7 +11,12 @@ public abstract class Move_AttackEntity_abstract : ModelBase, Move_interface
     }
 
     protected Shape_interface shape { get; set; }
+
     protected Rigidbody2D rb;
+
+    protected UnityEngine.Vector2 input { get; set; } = UnityEngine.Vector2.zero;
+    UnityEngine.Vector2 Move_interface.input { get => input; set => input = value; }
+
 
 
     public override void Init()
