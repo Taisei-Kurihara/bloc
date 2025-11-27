@@ -46,8 +46,9 @@ public class DynamicObjectManager : Singleton_DestroyAvailableMonoSingleton<Dyna
 
         }
 
-        // シーンロード後処理を実行
-        await UseDO.OnSceneLoadedAsync();
+        // (既)修:UseDO の持つ ChildControllers を全てawaitでOnSceneLoadedAsyncを実行するようにしてください (UseDOと同じクラスでなければ).
+        // シーンロード後処理を実行.
+        await ExecuteOnChildControllersAsync(UseDO, async controller => await controller.OnSceneLoadedAsync());
     }
 
     /// <summary>
@@ -55,7 +56,8 @@ public class DynamicObjectManager : Singleton_DestroyAvailableMonoSingleton<Dyna
     /// </summary>
     public async UniTask OnBeforeFadeLoadAsync()
     {
-        await UseDO.OnBeforeFadeLoadAsync();
+        // (既)修:UseDO の持つ ChildControllers を全てawaitでOnBeforeFadeLoadAsyncを実行するようにしてください (UseDOと同じクラスでなければ).
+        await ExecuteOnChildControllersAsync(UseDO, async controller => await controller.OnBeforeFadeLoadAsync());
     }
 
     /// <summary>
@@ -63,7 +65,8 @@ public class DynamicObjectManager : Singleton_DestroyAvailableMonoSingleton<Dyna
     /// </summary>
     public async UniTask OnFadeCompleted()
     {
-        await UseDO.OnFadeCompletedAsync();
+        // (既)修:UseDO の持つ ChildControllers を全てawaitでOnFadeCompletedAsyncを実行するようにしてください (UseDOと同じクラスでなければ).
+        await ExecuteOnChildControllersAsync(UseDO, async controller => await controller.OnFadeCompletedAsync());
     }
 
     /// <summary>
@@ -71,7 +74,8 @@ public class DynamicObjectManager : Singleton_DestroyAvailableMonoSingleton<Dyna
     /// </summary>
     public async UniTask OnSceneUnloadedAsync()
     {
-        await UseDO.OnSceneUnloadedAsync();
+        // (既)修:UseDO の持つ ChildControllers を全てawaitでOnSceneUnloadedAsyncを実行するようにしてください (UseDOと同じクラスでなければ).
+        await ExecuteOnChildControllersAsync(UseDO, async controller => await controller.OnSceneUnloadedAsync());
     }
 
     /// <summary>
@@ -97,7 +101,28 @@ public class DynamicObjectManager : Singleton_DestroyAvailableMonoSingleton<Dyna
     }
 
     /// <summary>
-    /// すべてのロード済みアセットを解放
+    /// ChildControllersを再帰的に処理するヘルパーメソッド.
+    /// </summary>
+    private async UniTask ExecuteOnChildControllersAsync(DynamicObjectController_interface controller, System.Func<DynamicObjectController_interface, UniTask> action)
+    {
+        // 自身を実行.
+        await action(controller);
+
+        // ChildControllersがあれば再帰的に実行.
+        if (controller.ChildControllers != null)
+        {
+            foreach (var child in controller.ChildControllers)
+            {
+                if (child != null && child.GetType() != controller.GetType())
+                {
+                    await ExecuteOnChildControllersAsync(child, action);
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// すべてのロード済みアセットを解放.
     /// </summary>
     public void ReleaseAllAssets()
     {

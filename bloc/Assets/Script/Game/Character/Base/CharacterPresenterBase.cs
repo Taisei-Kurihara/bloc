@@ -2,9 +2,9 @@ using UnityEngine;
 
 public abstract class CharacterPresenterBase : MonoBehaviour
 {
-    Move_interface Move { get; }
+    public abstract Move_interface Move { get; protected set; }
 
-    Shape_interface Shape { get; }
+    public abstract Shape_interface Shape { get; protected set; }
 
-    Status_abstract<StatusInitialize_abstract> Status { get; }
+    public abstract IStatus_base Status { get; protected set; }
 }

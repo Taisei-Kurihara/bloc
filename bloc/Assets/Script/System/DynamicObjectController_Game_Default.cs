@@ -1,11 +1,16 @@
+using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 
-public class DynamicObjectController_Game_Default : Singleton_DestroyAvailableMonoSingleton<DynamicObjectController_Game_Default> , DynamicObjectController_interface
+public class DynamicObjectController_Game_Default : Singleton_DestroyAvailableMonoSingleton<DynamicObjectController_Game_Default>, DynamicObjectController_interface
 {
     GameObject Player_Prefab;
     GameObject Player_Instance;
+
+    GameObject Attack_Prefab;
     public GameObject GetPlayer_Instance => Player_Instance;
+
+    public List<DynamicObjectController_interface> ChildControllers => new List<DynamicObjectController_interface>();
 
     public async UniTask OnBeforeFadeLoadAsync()
     {
@@ -25,6 +30,16 @@ public class DynamicObjectController_Game_Default : Singleton_DestroyAvailableMo
         else
         {
             Debug.Log("[Game_Default] OnBeforeFadeLoadAsync: Player プレハブロード完了");
+        }
+
+        Attack_Prefab = await DynamicObjectManager.Instance().LoadAssetAsync<GameObject>("Attack");
+        if (Attack_Prefab == null)
+        {
+            Debug.LogError("[Game_Default] Attack がロードできません");
+        }
+        else
+        {
+            Debug.Log("[Game_Default] OnSceneLoadedAsync: Attack プレハブロード完了");
         }
     }
 

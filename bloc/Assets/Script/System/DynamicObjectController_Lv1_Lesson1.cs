@@ -2,6 +2,7 @@
 // DynamicObjectController_Lv1_Lesson1.cs
 // Lv1_Lesson1 専用コントローラー
 // ==========================
+using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 using InGame;
 using R3;
@@ -27,13 +28,11 @@ public class DynamicObjectController_Lv1_Lesson1 : DynamicObjectController_inter
     GameObject UI_mono_Button_minus;
     GameObject UI_mono_Button_plus;
 
-    
+    // (既)修: ChildControllers に DynamicObjectController_Game_Defaultを指定できるようにしてください.
+    public List<DynamicObjectController_interface> ChildControllers => new List<DynamicObjectController_interface> { DynamicObjectController_Game_Default.Instance() };
 
     public async UniTask OnSceneLoadedAsync()
     {
-        Debug.Log("[Lv1_Lesson1] OnSceneLoadedAsync 開始");
-        await DynamicObjectController_Game_Default.Instance().OnSceneLoadedAsync();
-
         // UI プレハブロード
         UI_worldPos_Text = await DynamicObjectManager.Instance().LoadAssetAsync<GameObject>("UI_worldPos_Text");
         if (UI_worldPos_Text == null)
@@ -323,7 +322,6 @@ public class DynamicObjectController_Lv1_Lesson1 : DynamicObjectController_inter
 
     public async UniTask OnFadeCompletedAsync()
     {
-        await DynamicObjectController_Game_Default.Instance().OnFadeCompletedAsync();
     }
 
 

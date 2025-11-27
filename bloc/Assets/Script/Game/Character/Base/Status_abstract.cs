@@ -1,7 +1,16 @@
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 
-public abstract class Status_abstract<TIni> : MonoBehaviour, IModelBase where TIni : StatusInitialize_abstract
+// 非ジェネリックインターフェース（基底クラスで共通の型として使用可能）.
+public interface IStatus_base
+{
+    ContactType masterHitstatus { get; }
+    float hp { get; set; }
+    float hpMax { get; set; }
+    void Init();
+}
+
+public abstract class Status_abstract<TIni> : MonoBehaviour, IModelBase, IStatus_base where TIni : StatusInitialize_abstract
 {
 
     TIni StatusIni;

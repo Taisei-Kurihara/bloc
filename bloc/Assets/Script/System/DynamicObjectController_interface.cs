@@ -7,6 +7,9 @@ using UnityEngine.AddressableAssets;
 // シーンの読み込み・解放時の処理を実装するためのインターフェース
 public interface DynamicObjectController_interface
 {
+    /// <summary> 子のDynamicObjectControllerリスト. </summary>
+    public List<DynamicObjectController_interface> ChildControllers { get; }
+
     /// <summary> fade開始前に待機させずに読み込みを始めるメソッド（非同期）. </summary>
     public UniTask OnBeforeFadeLoadAsync();
 

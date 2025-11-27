@@ -7,24 +7,24 @@ public abstract class CharacterPresenter_D_AttackEntity_abstract : CharacterPres
     object Presenter_interface.View => new View();
 
 
-    public Move_AttackEntity_abstract Move { get; private set; }
-    public Shape_interface Shape { get; private set; }
-    public Status_AttackEntity_abstract Status { get; private set; }
+    // 基底クラスのabstractプロパティをoverrideで実装.
+    protected Move_AttackEntity_abstract _move;
+    protected Shape_Model_AttackEntity_abstract _shape;
+    protected Status_AttackEntity_abstract _status;
+
+    public override Move_interface Move { get => _move; protected set => _move = (Move_AttackEntity_abstract)value; }
+    public override Shape_interface Shape { get => _shape; protected set => _shape = (Shape_Model_AttackEntity_abstract)value; }
+    public override IStatus_base Status { get => _status; protected set => _status = (Status_AttackEntity_abstract)value; }
+
+    // 派生型でアクセスしやすくするプロパティ.
+    public Move_AttackEntity_abstract MoveAttack => _move;
+    public Shape_Model_AttackEntity_abstract ShapeAttack => _shape;
+    public Status_AttackEntity_abstract StatusAttack => _status;
 
     [SerializeField]
-    GameObject Point;
+    protected GameObject Point;
 
-    void Start()
+    void Init()
     {
-        Shape = new Shape_Model_Player(this, Point.GetComponent<SpriteRenderer>(), Point.GetComponent<EdgeCollider2D>(), GetComponent<CircleCollider2D>(), 3);
-        Shape.Init();
-
-        Move = new Move_AttackEntity_Default(this, Shape);
-        Move.Init();
-
-        Status = gameObject.AddComponent<Status_AttackEntity_Default>();
-        ((Status_AttackEntity_Default)Status).Initialize(new StatusInitializeAttack_Default(this, ContactType.Attack));
-        Status.Init();
-
     }
 }

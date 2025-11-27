@@ -18,4 +18,9 @@ public abstract class Move_AttackEntity_abstract : ModelBase, Move_interface
     {
         // 初期化処理.
     }
+
+    public void SetMoveInput(Vector2 input)
+    {
+        throw new System.NotImplementedException();
+    }
 }

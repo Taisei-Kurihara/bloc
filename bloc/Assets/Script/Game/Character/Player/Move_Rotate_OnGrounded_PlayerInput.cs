@@ -24,10 +24,10 @@ public enum GroundStatus
 
 public class Move_Rotate_OnGrounded_PlayerInput : ModelBase, Move_interface, Camera_FollowTarget_interface
 {
-    public Move_Rotate_OnGrounded_PlayerInput(CharacterPresenterBase presenter,Shape_interface shape) : base(presenter)
+    public Move_Rotate_OnGrounded_PlayerInput(CharacterPresenterBase presenter) : base(presenter)
     {
         this.presenter = presenter;
-        this.shape = shape;
+        this.shape = presenter.Shape;
     }
 
     #region Fields and Properties
@@ -56,6 +56,8 @@ public class Move_Rotate_OnGrounded_PlayerInput : ModelBase, Move_interface, Cam
         get => _checkRayGroundStatus.Value;
         set => _checkRayGroundStatus.Value = value;
     }
+    protected UnityEngine.Vector2 input { get; set; } = UnityEngine.Vector2.zero;
+    UnityEngine.Vector2 Move_interface.input { get => input; set => input = value; }
 
     // 坂の方向と急坂判定.
     private int slopeDirection = 0; // -1: 左向き上り, 1: 右向き上り, 0: 平地または空中.
@@ -96,6 +98,7 @@ public class Move_Rotate_OnGrounded_PlayerInput : ModelBase, Move_interface, Cam
     #endregion
 
     #region Movement System
+
 
     /// <summary>
     /// 移動と回転システムを初期化
@@ -158,6 +161,10 @@ public class Move_Rotate_OnGrounded_PlayerInput : ModelBase, Move_interface, Cam
             }).AddTo(presenter);
     }
 
+    public void SetMoveInput(UnityEngine.Vector2 input)
+    {
+        this.input = input;
+    }
 
     /// <summary>
     /// 地面の状態を判定する.
@@ -695,5 +702,10 @@ public class Move_Rotate_OnGrounded_PlayerInput : ModelBase, Move_interface, Cam
         cameraFollowTarget = cameraTargetObj.transform;
 
         CameraManager.Instance().TrackingTargetTransform = cameraFollowTarget;
+    }
+
+    void Move_interface.SetMoveInput(UnityEngine.Vector2 input)
+    {
+        throw new NotImplementedException();
     }
 }
