@@ -116,7 +116,8 @@ public class Move_Rotate_OnGrounded_PlayerInput : ModelBase, Move_interface, Cam
             // === 移動処理 ===
 
             // 入力取得
-            var vec = action.Player.Move.ReadValue<UnityEngine.Vector2>();
+            //var vec = action.Player.Move.ReadValue<UnityEngine.Vector2>();
+            var vec = input;
             var rotatevec = action.Player.Rotate.ReadValue<float>();
             int vecX = (int)(new UnityEngine.Vector2(vec.x, 0).normalized).x;
 
@@ -704,8 +705,4 @@ public class Move_Rotate_OnGrounded_PlayerInput : ModelBase, Move_interface, Cam
         CameraManager.Instance().TrackingTargetTransform = cameraFollowTarget;
     }
 
-    void Move_interface.SetMoveInput(UnityEngine.Vector2 input)
-    {
-        throw new NotImplementedException();
-    }
 }

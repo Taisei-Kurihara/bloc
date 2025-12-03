@@ -20,11 +20,12 @@ namespace InGame
         public override Shape_interface Shape { get => _shape; protected set => _shape = value; }
         public override IStatus_base Status { get => _status; protected set => _status = value; }
         public override Input_AI_abstract Input { get => _status_base; protected set => _status_base = (Input_AI_PlayerInput)value; }
+        public override CharacterPresenter_D_AttackEntity_abstract Attack { get => null; protected set { } }
 
         InputSystem_Actions inputActions;
 
-        [SerializeField]
-        GameObject Point;
+        //[SerializeField]
+        //GameObject Point;
 
         CircleCollider2D circleCollider;
 
@@ -48,6 +49,9 @@ namespace InGame
 
             Input = new Input_AI_PlayerInput(this);
             Input.Init();
+
+            Attack = new CharacterPresenter_B_AttackEntity_default();
+            // ここでAttack.Initialize();
         }
 
         /// <summary>

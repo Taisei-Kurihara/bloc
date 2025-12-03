@@ -84,18 +84,31 @@ public class DynamicObjectManager : Singleton_DestroyAvailableMonoSingleton<Dyna
     public async UniTask<T> LoadAssetAsync<T>(string address) where T : Object
     {
         Debug.Log($"[DynamicObjectManager] LoadAssetAsync 開始: {address}");
-        var handle = Addressables.LoadAssetAsync<T>(address);
-        await handle.ToUniTask();
+        try
+        {
+            var handle = Addressables.LoadAssetAsync<T>(address);
+            await handle.ToUniTask();
 
-        if (handle.Status == AsyncOperationStatus.Succeeded)
-        {
-            loadedAssets.Add(handle.Result);
-            Debug.Log($"[DynamicObjectManager] LoadAssetAsync 成功: {address}");
-            return handle.Result;
+            if (handle.Status == AsyncOperationStatus.Succeeded)
+            {
+                loadedAssets.Add(handle.Result);
+                Debug.Log($"[DynamicObjectManager] LoadAssetAsync 成功: {address}");
+                return handle.Result;
+            }
+            else
+            {
+                Debug.LogWarning($"[DynamicObjectManager] LoadAssetAsync 失敗: {address}");
+                return null;
+            }
         }
-        else
+        catch (UnityEngine.AddressableAssets.InvalidKeyException)
         {
-            Debug.LogError($"[DynamicObjectManager] LoadAssetAsync 失敗: {address}");
+            Debug.LogWarning($"[DynamicObjectManager] アセットが見つかりません（Addressablesに未登録）: {address}");
+            return null;
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogWarning($"[DynamicObjectManager] LoadAssetAsync 例外: {address} - {e.Message}");
             return null;
         }
     }

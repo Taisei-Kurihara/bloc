@@ -7,7 +7,7 @@ public class DynamicObjectController_Game_Default : Singleton_DestroyAvailableMo
     GameObject Player_Prefab;
     GameObject Player_Instance;
 
-    GameObject Attack_Prefab;
+    public GameObject Attack_Prefab { get; private set; }
     public GameObject GetPlayer_Instance => Player_Instance;
 
     public List<DynamicObjectController_interface> ChildControllers => new List<DynamicObjectController_interface>();
@@ -32,14 +32,21 @@ public class DynamicObjectController_Game_Default : Singleton_DestroyAvailableMo
             Debug.Log("[Game_Default] OnBeforeFadeLoadAsync: Player プレハブロード完了");
         }
 
-        Attack_Prefab = await DynamicObjectManager.Instance().LoadAssetAsync<GameObject>("Attack");
-        if (Attack_Prefab == null)
+        try
         {
-            Debug.LogError("[Game_Default] Attack がロードできません");
+            Attack_Prefab = await DynamicObjectManager.Instance().LoadAssetAsync<GameObject>("Attack");
+            if (Attack_Prefab == null)
+            {
+                Debug.LogWarning("[Game_Default] Attack がロードできません（Addressablesに登録されていない可能性があります）");
+            }
+            else
+            {
+                Debug.Log("[Game_Default] OnSceneLoadedAsync: Attack プレハブロード完了");
+            }
         }
-        else
+        catch (System.Exception e)
         {
-            Debug.Log("[Game_Default] OnSceneLoadedAsync: Attack プレハブロード完了");
+            Debug.LogWarning($"[Game_Default] Attack ロード失敗（未登録の可能性）: {e.Message}");
         }
     }
 

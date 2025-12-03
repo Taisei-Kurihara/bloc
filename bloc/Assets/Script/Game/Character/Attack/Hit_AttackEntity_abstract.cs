@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using R3.Triggers;
 using R3;
 
-public abstract class AttackEntity_abstract : ModelBase
+public abstract class Hit_AttackEntity_abstract : ModelBase
 {
-    protected AttackEntity_abstract(CharacterPresenterBase presenter) : base(presenter)
+    protected Hit_AttackEntity_abstract(CharacterPresenterBase presenter) : base(presenter)
     {
         this.presenter = presenter;
     }
