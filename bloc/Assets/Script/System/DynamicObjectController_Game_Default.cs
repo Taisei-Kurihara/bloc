@@ -10,7 +10,9 @@ public class DynamicObjectController_Game_Default : Singleton_DestroyAvailableMo
     public GameObject Attack_Prefab { get; private set; }
     public GameObject GetPlayer_Instance => Player_Instance;
 
+    public SceneControllerType ControllerType => SceneControllerType.InGame;
     public List<DynamicObjectController_interface> ChildControllers => new List<DynamicObjectController_interface>();
+    public List<AddressableAssetAddress> LoadedAssetAddresses => new List<AddressableAssetAddress> { AddressableAssetAddress.Player };
 
     public async UniTask OnBeforeFadeLoadAsync()
     {
@@ -32,22 +34,22 @@ public class DynamicObjectController_Game_Default : Singleton_DestroyAvailableMo
             Debug.Log("[Game_Default] OnBeforeFadeLoadAsync: Player プレハブロード完了");
         }
 
-        try
-        {
-            Attack_Prefab = await DynamicObjectManager.Instance().LoadAssetAsync<GameObject>("Attack");
-            if (Attack_Prefab == null)
-            {
-                Debug.LogWarning("[Game_Default] Attack がロードできません（Addressablesに登録されていない可能性があります）");
-            }
-            else
-            {
-                Debug.Log("[Game_Default] OnSceneLoadedAsync: Attack プレハブロード完了");
-            }
-        }
-        catch (System.Exception e)
-        {
-            Debug.LogWarning($"[Game_Default] Attack ロード失敗（未登録の可能性）: {e.Message}");
-        }
+        // try
+        // {
+        //     Attack_Prefab = await DynamicObjectManager.Instance().LoadAssetAsync<GameObject>("Attack");
+        //     if (Attack_Prefab == null)
+        //     {
+        //         Debug.LogWarning("[Game_Default] Attack がロードできません（Addressablesに登録されていない可能性があります）");
+        //     }
+        //     else
+        //     {
+        //         Debug.Log("[Game_Default] OnSceneLoadedAsync: Attack プレハブロード完了");
+        //     }
+        // }
+        // catch (System.Exception e)
+        // {
+        //     Debug.LogWarning($"[Game_Default] Attack ロード失敗（未登録の可能性）: {e.Message}");
+        // }
     }
 
     public async UniTask OnFadeCompletedAsync()

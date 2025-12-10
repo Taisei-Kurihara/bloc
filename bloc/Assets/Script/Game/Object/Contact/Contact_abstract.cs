@@ -53,7 +53,9 @@ public abstract class Contact_abstract : MonoBehaviour
         rb.OnTriggerEnter2DAsObservable()
             .Subscribe(collider =>
             {
-                Status_abstract<StatusInitialize_abstract> status = collider.GetComponent<Status_abstract<StatusInitialize_abstract>>();
+                // IStatusProviderインターフェースでStatusを取得.
+                IStatusProvider statusProvider = collider.GetComponent<IStatusProvider>();
+                IStatus_base status = statusProvider?.Status;
                 ContactType contactType = ContactType.None;
 
                 if (status != null)

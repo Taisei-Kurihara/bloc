@@ -10,7 +10,7 @@ public interface IStatus_base
     void Init();
 }
 
-public abstract class Status_abstract<TIni> : MonoBehaviour, IModelBase, IStatus_base where TIni : StatusInitialize_abstract
+public abstract class Status_abstract<TIni> : IModelBase, IStatus_base where TIni : StatusInitialize_abstract
 {
 
     TIni StatusIni;

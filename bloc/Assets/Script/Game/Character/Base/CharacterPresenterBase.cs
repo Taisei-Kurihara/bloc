@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public abstract class CharacterPresenterBase : MonoBehaviour
+public abstract class CharacterPresenterBase : MonoBehaviour, IStatusProvider
 {
     public virtual void AllSet(
         GameObject point,
@@ -22,6 +22,9 @@ public abstract class CharacterPresenterBase : MonoBehaviour
     public abstract Shape_interface Shape { get; protected set; }
 
     public abstract IStatus_base Status { get; protected set; }
+
+    // IStatusProvider の明示的実装.
+    IStatus_base IStatusProvider.Status => Status;
 
     public abstract Input_AI_abstract Input { get; protected set; }
 

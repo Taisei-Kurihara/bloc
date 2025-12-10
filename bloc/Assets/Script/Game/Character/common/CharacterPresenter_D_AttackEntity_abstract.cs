@@ -11,9 +11,9 @@ public abstract class CharacterPresenter_D_AttackEntity_abstract : CharacterPres
     // 基底クラスのabstractプロパティをoverrideで実装.
     protected Move_AttackEntity_abstract _move;
     protected Shape_Model_AttackEntity_abstract _shape;
-    protected Status_AttackEntity_abstract _status;
     protected Input_AI_Attack_abstract _input;
     protected Hit_AttackEntity_abstract _attack;
+    protected Status_AttackEntity_abstract _status;
     
     public override Move_interface Move { get => _move; protected set => _move = (Move_AttackEntity_abstract)value; }
     public override Shape_interface Shape { get => _shape; protected set => _shape = (Shape_Model_AttackEntity_abstract)value; }
@@ -26,9 +26,6 @@ public abstract class CharacterPresenter_D_AttackEntity_abstract : CharacterPres
     public Move_AttackEntity_abstract MoveAttack => _move;
     public Shape_Model_AttackEntity_abstract ShapeAttack => _shape;
     public Status_AttackEntity_abstract StatusAttack => _status;
-
-    [SerializeField]
-    protected GameObject Point;
 
     public virtual void Init()
     {
@@ -64,17 +61,16 @@ public abstract class CharacterPresenter_D_AttackEntity_abstract : CharacterPres
         }
         _move.Init();
 
-        // Statusの初期化（引数がnullならデフォルトを生成）.
+        // Statusの初期化（引数があれば使用、なければnewで生成）.
         if (status != null)
         {
             _status = status;
         }
         else
         {
-            _status = gameObject.AddComponent<Status_AttackEntity_Default>();
-            ((Status_AttackEntity_Default)_status).Initialize(new StatusInitializeAttack_Default(this, ContactType.Attack));
+            _status = new Status_AttackEntity_Default();
         }
-
+        _status.Initialize(new StatusInitializeAttack_Default(this, ContactType.Attack));
         _status.Init();
 
         if (attack != null)

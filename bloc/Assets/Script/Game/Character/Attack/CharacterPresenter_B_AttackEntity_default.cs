@@ -4,9 +4,6 @@ using UnityEngine;
 
 public class CharacterPresenter_B_AttackEntity_default : CharacterPresenter_D_AttackEntity_abstract
 {
-
-    
-
     void Start()
     {
     }

@@ -28,8 +28,9 @@ public class DynamicObjectController_Lv1_Lesson1 : DynamicObjectController_inter
     GameObject UI_mono_Button_minus;
     GameObject UI_mono_Button_plus;
 
-    // (既)修: ChildControllers に DynamicObjectController_Game_Defaultを指定できるようにしてください.
+    public SceneControllerType ControllerType => SceneControllerType.CurrentSceneOnly;
     public List<DynamicObjectController_interface> ChildControllers => new List<DynamicObjectController_interface> { DynamicObjectController_Game_Default.Instance() };
+    public List<AddressableAssetAddress> LoadedAssetAddresses => new List<AddressableAssetAddress> { AddressableAssetAddress.UI_worldPos_Text, AddressableAssetAddress.UI_mono_Button };
 
     public async UniTask OnSceneLoadedAsync()
     {

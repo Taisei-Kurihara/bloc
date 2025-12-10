@@ -13,12 +13,12 @@ namespace InGame
 
         private Move_interface _move;
         private Shape_interface _shape;
-        private IStatus_base _status;
         private Input_AI_PlayerInput _status_base;
+        private Status_BattleCharacter_default _status;
 
         public override Move_interface Move { get => _move; protected set => _move = value; }
         public override Shape_interface Shape { get => _shape; protected set => _shape = value; }
-        public override IStatus_base Status { get => _status; protected set => _status = value; }
+        public override IStatus_base Status { get => _status; protected set => _status = (Status_BattleCharacter_default)value; }
         public override Input_AI_abstract Input { get => _status_base; protected set => _status_base = (Input_AI_PlayerInput)value; }
         public override CharacterPresenter_D_AttackEntity_abstract Attack { get => null; protected set { } }
 
@@ -41,9 +41,9 @@ namespace InGame
             Move = new Move_Rotate_OnGrounded_PlayerInput(this);
             Move.Init();
 
-            Status = gameObject.AddComponent<Status_BattleCharacter_default>();
-            ((Status_BattleCharacter_default)Status).Initialize(new StatusInitialize_Default(this, ContactType.Player));
-            Status.Init();
+            _status = new Status_BattleCharacter_default();
+            _status.Initialize(new StatusInitialize_Default(this, ContactType.Player));
+            _status.Init();
 
             Observable.EveryUpdate().Subscribe(_ => { UpdateController(); }).AddTo(this);
 

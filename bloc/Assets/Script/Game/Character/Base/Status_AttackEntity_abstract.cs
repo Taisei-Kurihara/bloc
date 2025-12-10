@@ -1,5 +1,4 @@
 using Cysharp.Threading.Tasks;
-using UnityEngine;
 
 public abstract class Status_AttackEntity_abstract : Status_abstract<StatusInitializeAttack_abstract>
 {
