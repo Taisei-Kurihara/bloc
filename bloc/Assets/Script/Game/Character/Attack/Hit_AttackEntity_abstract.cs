@@ -73,25 +73,19 @@ public abstract class Hit_AttackEntity_abstract : ModelBase
 
         hitDetectionSubscription = presenter
             .OnTriggerEnter2DAsObservable()
-            .Where(collider => collider.gameObject.layer == LayerMask.NameToLayer("Default")) // 地面のレイヤーを指定
+            .Where(collider => collider.gameObject.layer == LayerMask.NameToLayer("Default"))
             .Subscribe(collider =>
             {
-                Status_abstract<StatusInitialize_abstract> status = collider.GetComponent<Status_abstract<StatusInitialize_abstract>>();
+                // IStatusProviderインターフェースでStatusを取得.
+                IStatusProvider statusProvider = collider.GetComponent<IStatusProvider>();
+                IStatus_base status = statusProvider?.Status;
 
-                if (status != null && status.masterHitstatus != null)
+                if (status != null)
                 {
                     if (hitTargets.Contains(status.masterHitstatus))
                     {
                         OnHitTarget(status);
                     }
-                    else
-                    {
-
-                    }
-                }
-                else
-                {
-
                 }
             });
     }
@@ -107,7 +101,7 @@ public abstract class Hit_AttackEntity_abstract : ModelBase
     }
 
     // Hit対象に当たった時に呼び出されるvirtual関数.
-    protected virtual void OnHitTarget(Status_abstract<StatusInitialize_abstract> target)
+    protected virtual void OnHitTarget(IStatus_base target)
     {
 
     }

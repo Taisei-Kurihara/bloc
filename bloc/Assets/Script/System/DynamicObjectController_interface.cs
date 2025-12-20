@@ -17,10 +17,6 @@ public enum SceneControllerType
 // 上:DynamicObjectController_interface を継承するクラスの内 _Default は outGame
 // 上:Game_Default はinGame それ以外は今sceneだけのenum を指定してください
 
-//(既)修:inGame で読み込まれたものはOutGame時にリリース
-//(既)修:OutGame　で読み込まれたものはinGame でrelease
-//(既)修:CurrentSceneOnly で読み込まれたものはscene切り替え時に破棄
-
 // 動的オブジェクトコントローラーのインターフェース定義.
 // シーンの読み込み・解放時の処理を実装するためのインターフェース.
 public interface DynamicObjectController_interface

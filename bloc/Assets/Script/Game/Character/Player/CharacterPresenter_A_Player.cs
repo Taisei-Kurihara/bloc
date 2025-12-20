@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using Common;
 using System;
 using Cysharp.Threading.Tasks;
@@ -22,10 +22,11 @@ namespace InGame
         public override Input_AI_abstract Input { get => _status_base; protected set => _status_base = (Input_AI_PlayerInput)value; }
         public override CharacterPresenter_D_AttackEntity_abstract Attack { get => null; protected set { } }
 
+        private AttackEntityAdvent_Player_Default _attackAdvent;
+        public AttackEntityAdvent_Player_Default AttackAdvent => _attackAdvent;
+
         InputSystem_Actions inputActions;
 
-        //[SerializeField]
-        //GameObject Point;
 
         CircleCollider2D circleCollider;
 
@@ -47,11 +48,14 @@ namespace InGame
 
             Observable.EveryUpdate().Subscribe(_ => { UpdateController(); }).AddTo(this);
 
+
+            _attackAdvent = new AttackEntityAdvent_Player_Default(this);
+            _attackAdvent.Init();
+
+
             Input = new Input_AI_PlayerInput(this);
             Input.Init();
 
-            Attack = new CharacterPresenter_B_AttackEntity_default();
-            // ここでAttack.Initialize();
         }
 
         /// <summary>
@@ -70,6 +74,7 @@ namespace InGame
 
             await Shape.SetShapeAsync(shape);
             Debug.Log($"[Player_Presenter] Shape set to {shape}");
+            _attackAdvent.Init();
         }
     }
 }

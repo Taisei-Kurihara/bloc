@@ -1,4 +1,4 @@
-using Cysharp.Threading.Tasks;
+ï»¿using Cysharp.Threading.Tasks;
 using UnityEngine;
 
 public class Shape_Model_AttackEntity_Default : Shape_Model_AttackEntity_abstract
@@ -28,7 +28,7 @@ public class Shape_Model_AttackEntity_Default : Shape_Model_AttackEntity_abstrac
 
     void SetAll()
     {
-        // •\¦E“–‚½‚è”»’è‚ğXV
+        // è¡¨ç¤ºãƒ»å½“ãŸã‚Šåˆ¤å®šã‚’æ›´æ–°.
         SetSprite();
         SetColl();
     }
@@ -36,13 +36,20 @@ public class Shape_Model_AttackEntity_Default : Shape_Model_AttackEntity_abstrac
 
     void SetSprite()
     {
+        if (_shapeComp == null) return;
         if (shapeGenerator == null) return;
+        if (spriteRenderer == null) return;
+        if (shape == null) return;
+        if (shape.sprite == null) return;
+        if (offsetobj == null) return;
 
         offsetobj.localPosition = shapeGenerator.ShapeCase(shape.length);
 
-        spriteRenderer.sprite = shape.sprite;
-        spriteRenderer.size = new Vector2(100, 100);
+        var sr = presenter.GetComponentInChildren<SpriteRenderer>();
+        if (sr == null) return;
 
+        sr.sprite = shape.sprite;
+        sr.size = new Vector2(100, 100);
     }
 
     void SetColl()

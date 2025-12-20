@@ -13,7 +13,7 @@ namespace Common
         bool isInitialized = false;
 
         /// <summary>
-        /// –{‘Ì‚Ìæ“¾
+        /// æœ¬ä½“ã®å–å¾—
         /// </summary>
         /// <returns></returns>
         public static T Instance()
@@ -23,7 +23,7 @@ namespace Common
                 var gameObject = new GameObject(typeof(T).Name);
                 instance = gameObject.AddComponent<T>();
 
-                // Awake ‚ªŒÄ‚Î‚ê‚é‘O‚É‹­§‰Šú‰»
+                // Awake ãŒå‘¼ã°ã‚Œã‚‹å‰ã«å¼·åˆ¶åˆæœŸåŒ–
                 instance.Init().Forget();
 
                 DontDestroyOnLoad(gameObject);
@@ -31,7 +31,7 @@ namespace Common
             return instance;
         }
 
-        // SceneManagerSingleton “à
+        // SceneManagerSingleton å†…
         private async UniTaskVoid Init()
         {
             Debug.Log("[SceneManager] Forced Init start");
