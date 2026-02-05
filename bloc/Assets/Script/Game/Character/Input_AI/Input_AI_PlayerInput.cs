@@ -1,8 +1,9 @@
-using System;
+﻿using System;
 using Common;
 using Cysharp.Threading.Tasks;
 using InGame;
 using R3;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class Input_AI_PlayerInput : Input_AI_abstract
@@ -15,31 +16,30 @@ public class Input_AI_PlayerInput : Input_AI_abstract
         this.move = presenter.Move;
     }
 
-    private IDisposable Dismove;
     private CharacterPresenter_A_Player _playerPresenter;
     private AttackEntityAdvent_Player_Default _advent;
-
+    InputSystem_Actions action;
     public override void Init()
     {
+        action = InputSystemActionsManager.Instance().GetInputSystem_Actions();
+        StartMoveInput();
+        
+    }
 
-        InputSystem_Actions action = InputSystemActionsManager.Instance().GetInputSystem_Actions();
+    protected override void ProcessMoveInput()
+    {
+        // === 移動処理 ===
 
-        Dismove = Observable.EveryUpdate().Subscribe(_ =>
+        // 入力取得.
+        Vector2 vec = action.Player.Move.ReadValue<UnityEngine.Vector2>();
+        move.SetMoveInput(vec);
+
+        if (action.Player.Attack.WasPressedThisFrame())
         {
-            // === 移動処理 ===
-
-            // 入力取得.
-            Vector2 vec = action.Player.Move.ReadValue<UnityEngine.Vector2>();
-            move.SetMoveInput(vec);
-
-            if (action.Player.Attack.WasPressedThisFrame())
+            if (_advent != null)
             {
-                if (_advent != null)
-                {
-                    _advent.Advent().Forget();
-                }
+                _advent.Advent().Forget();
             }
-
-        }).AddTo(presenter);
+        }
     }
 }

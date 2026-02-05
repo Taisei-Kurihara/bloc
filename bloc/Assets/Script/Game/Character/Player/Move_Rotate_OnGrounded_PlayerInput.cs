@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections;
 using System.Linq;
 using System.Numerics;
@@ -42,7 +42,7 @@ public class Move_Rotate_OnGrounded_PlayerInput : ModelBase, Move_interface, Cam
     [SerializeField] private float Speed = 10f;
     [SerializeField] private float JumpPower = 40.0f;
     [SerializeField] private float GravityPower = -60f;
-    [SerializeField] private float spinSpeed = 6f;
+    [SerializeField] private float spinSpeed = 10f;
     [SerializeField] private int maxJumpCount = 1;
     
     // 斜面と地面の定数
