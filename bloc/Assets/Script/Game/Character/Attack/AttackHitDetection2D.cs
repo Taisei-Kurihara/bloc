@@ -18,6 +18,31 @@ public static class AttackHitDetection2D
     private static int _defaultLayerMask = -1;
 
     /// <summary>
+    /// 頂点配列プール（角数別）- 前フレーム用.
+    /// </summary>
+    private static readonly Dictionary<int, Vector2[]> _prevVerticesPool = new Dictionary<int, Vector2[]>();
+
+    /// <summary>
+    /// 頂点配列プール（角数別）- 現フレーム用.
+    /// </summary>
+    private static readonly Dictionary<int, Vector2[]> _currVerticesPool = new Dictionary<int, Vector2[]>();
+
+    /// <summary>
+    /// GetComponent結果キャッシュ.
+    /// </summary>
+    private static readonly Dictionary<Collider2D, IStatusProvider> _statusProviderCache = new Dictionary<Collider2D, IStatusProvider>();
+
+    /// <summary>
+    /// キャッシュクリア用フレームカウント.
+    /// </summary>
+    private static int _lastCacheClearFrame = -1;
+
+    /// <summary>
+    /// キャッシュクリア間隔（フレーム数）.
+    /// </summary>
+    private const int CACHE_CLEAR_INTERVAL = 300;
+
+    /// <summary>
     /// レイヤーマスク初期化.
     /// </summary>
     private static void InitializeLayerMasks()
@@ -71,7 +96,7 @@ public static class AttackHitDetection2D
 
     /// <summary>
     /// 攻撃エンティティの当たり判定を実行.
-    /// 各頂点について前フレーム→現在フレームのRaycastを行う.
+    /// 代表点（中心＋対角頂点）のみRaycastを行う（軽量化）.
     /// </summary>
     /// <param name="data">攻撃エンティティデータ.</param>
     /// <returns>ヒット結果.</returns>
@@ -88,60 +113,67 @@ public static class AttackHitDetection2D
             HitCollider = null
         };
 
-        // 前フレームと現在フレームの頂点位置を計算.
-        Vector2[] prevVertices = GetWorldVerticesForHit(
-            data.ShapeAngular, data.PreviousPosition, data.ShapeSize, data.Rotation);
-        Vector2[] currVertices = GetWorldVerticesForHit(
-            data.ShapeAngular, data.Position, data.ShapeSize, data.Rotation);
+        // 移動距離計算.
+        Vector2 centerDir = data.Position - data.PreviousPosition;
+        float centerDist = centerDir.magnitude;
 
-        // 各頂点についてRaycast.
-        for (int i = 0; i < prevVertices.Length; i++)
+        // 移動がほぼない場合はスキップ.
+        if (centerDist < 0.001f) return result;
+
+        centerDir /= centerDist;
+
+        // 1. 中心点のRaycast（最優先）.
+        RaycastHit2D centerHit = Physics2D.Raycast(data.PreviousPosition, centerDir, centerDist);
+        if (centerHit.collider != null)
         {
-            Vector2 prevVertex = prevVertices[i];
-            Vector2 currVertex = currVertices[i];
-            Vector2 direction = currVertex - prevVertex;
-            float distance = direction.magnitude;
-
-            if (distance < 0.001f) continue;
-
-            direction.Normalize();
-
-            // Raycast実行（全レイヤー対象）.
-            RaycastHit2D hit = Physics2D.Raycast(prevVertex, direction, distance);
-
-            if (hit.collider != null)
-            {
-                // ヒット判定処理.
-                HitResult hitResult = ProcessHit(ref data, hit);
-                if (hitResult.HasHit)
-                {
-                    return hitResult;
-                }
-            }
+            HitResult hitResult = ProcessHit(ref data, centerHit);
+            if (hitResult.HasHit) return hitResult;
         }
 
-        // 中心点のRaycastも実行（小さいオブジェクトのすり抜け防止）.
+        // 2. 代表頂点のRaycast（対角2点のみ）.
+        Vector2[] prevVertices = GetWorldVerticesForHit(
+            data.ShapeAngular, data.PreviousPosition, data.ShapeSize, data.Rotation, true);
+        Vector2[] currVertices = GetWorldVerticesForHit(
+            data.ShapeAngular, data.Position, data.ShapeSize, data.Rotation, false);
+
+        int vertexCount = prevVertices.Length;
+        if (vertexCount > 0)
         {
-            Vector2 direction = data.Position - data.PreviousPosition;
-            float distance = direction.magnitude;
+            // 先頭頂点.
+            HitResult vertexResult = CheckVertexHit(ref data, prevVertices[0], currVertices[0]);
+            if (vertexResult.HasHit) return vertexResult;
 
-            if (distance >= 0.001f)
+            // 対角頂点（頂点数の半分位置）.
+            if (vertexCount >= 3)
             {
-                direction.Normalize();
-                RaycastHit2D hit = Physics2D.Raycast(data.PreviousPosition, direction, distance);
-
-                if (hit.collider != null)
-                {
-                    HitResult hitResult = ProcessHit(ref data, hit);
-                    if (hitResult.HasHit)
-                    {
-                        return hitResult;
-                    }
-                }
+                int oppositeIdx = vertexCount / 2;
+                vertexResult = CheckVertexHit(ref data, prevVertices[oppositeIdx], currVertices[oppositeIdx]);
+                if (vertexResult.HasHit) return vertexResult;
             }
         }
 
         return result;
+    }
+
+    /// <summary>
+    /// 頂点間のRaycastを実行.
+    /// </summary>
+    private static HitResult CheckVertexHit(ref AttackEntityData data, Vector2 prevVertex, Vector2 currVertex)
+    {
+        Vector2 direction = currVertex - prevVertex;
+        float distance = direction.magnitude;
+
+        if (distance < 0.001f) return new HitResult();
+
+        direction /= distance;
+
+        RaycastHit2D hit = Physics2D.Raycast(prevVertex, direction, distance);
+        if (hit.collider != null)
+        {
+            return ProcessHit(ref data, hit);
+        }
+
+        return new HitResult();
     }
 
     /// <summary>
@@ -172,12 +204,8 @@ public static class AttackHitDetection2D
             return result;
         }
 
-        // キャラクター判定.
-        IStatusProvider statusProvider = hit.collider.GetComponent<IStatusProvider>();
-        if (statusProvider == null)
-        {
-            statusProvider = hit.collider.GetComponentInParent<IStatusProvider>();
-        }
+        // キャラクター判定（キャッシュ使用）.
+        IStatusProvider statusProvider = GetCachedStatusProvider(hit.collider);
 
         if (statusProvider != null)
         {
@@ -221,9 +249,9 @@ public static class AttackHitDetection2D
     }
 
     /// <summary>
-    /// ワールド座標での頂点位置を取得（ShapeManagerから取得）.
+    /// ワールド座標での頂点位置を取得（ShapeManagerから取得、配列プール使用）.
     /// </summary>
-    private static Vector2[] GetWorldVerticesForHit(int angular, Vector2 position, float size, float rotation)
+    private static Vector2[] GetWorldVerticesForHit(int angular, Vector2 position, float size, float rotation, bool isPrev)
     {
         // ShapeManagerから頂点データを取得.
         Vector2[] localVertices = null;
@@ -241,11 +269,18 @@ public static class AttackHitDetection2D
         // ShapeManagerがない場合はAttackMesh2DGeneratorを使用.
         if (localVertices == null)
         {
-            return AttackMesh2DGenerator.GetWorldVertices(angular, position, size, rotation);
+            localVertices = AttackMesh2DGenerator.GetVertices(angular);
         }
 
-        // ワールド座標に変換.
-        Vector2[] worldVertices = new Vector2[localVertices.Length];
+        // 配列プールから取得または作成.
+        var pool = isPrev ? _prevVerticesPool : _currVerticesPool;
+        if (!pool.TryGetValue(angular, out Vector2[] worldVertices) || worldVertices.Length != localVertices.Length)
+        {
+            worldVertices = new Vector2[localVertices.Length];
+            pool[angular] = worldVertices;
+        }
+
+        // ワールド座標に変換（配列再利用）.
         float cos = Mathf.Cos(rotation);
         float sin = Mathf.Sin(rotation);
 
@@ -291,5 +326,48 @@ public static class AttackHitDetection2D
         }
 
         return false;
+    }
+
+    /// <summary>
+    /// StatusProviderをキャッシュから取得または検索.
+    /// </summary>
+    private static IStatusProvider GetCachedStatusProvider(Collider2D collider)
+    {
+        if (collider == null) return null;
+
+        // 定期的にキャッシュをクリア（破棄されたオブジェクト対策）.
+        int currentFrame = Time.frameCount;
+        if (currentFrame - _lastCacheClearFrame > CACHE_CLEAR_INTERVAL)
+        {
+            _statusProviderCache.Clear();
+            _lastCacheClearFrame = currentFrame;
+        }
+
+        // キャッシュから取得.
+        if (_statusProviderCache.TryGetValue(collider, out IStatusProvider cached))
+        {
+            return cached;
+        }
+
+        // 検索してキャッシュに保存.
+        IStatusProvider provider = collider.GetComponent<IStatusProvider>();
+        if (provider == null)
+        {
+            provider = collider.GetComponentInParent<IStatusProvider>();
+        }
+
+        _statusProviderCache[collider] = provider;
+        return provider;
+    }
+
+    /// <summary>
+    /// キャッシュをクリア（シーン切替時などに呼び出し）.
+    /// </summary>
+    public static void ClearCache()
+    {
+        _statusProviderCache.Clear();
+        _prevVerticesPool.Clear();
+        _currVerticesPool.Clear();
+        _lastCacheClearFrame = -1;
     }
 }

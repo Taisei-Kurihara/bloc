@@ -20,8 +20,9 @@ public abstract class AttackEntityAdvent_abstract : ModelBase
     // デフォルトはプレイヤーの現在の形状と同じ.
     public virtual int AttackShapeAngular => presenter?.Shape?.shape?.length ?? 3;
 
-    // 攻撃対象（継承クラスで変更可能）.
-    public virtual List<ContactType> HitTargets => new List<ContactType> { ContactType.Enemy };
+    // 攻撃対象（継承クラスで変更可能）- キャッシュ済み.
+    private static readonly List<ContactType> _defaultHitTargets = new List<ContactType> { ContactType.Enemy };
+    public virtual List<ContactType> HitTargets => _defaultHitTargets;
 
     // 攻撃の生存時間（継承クラスで変更可能）.
     public virtual float AttackLifeTime => 5f;
