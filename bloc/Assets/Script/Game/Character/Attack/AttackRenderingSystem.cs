@@ -65,6 +65,26 @@ public class AttackRenderingSystem : MonoBehaviour
     /// </summary>
     private Dictionary<int, Mesh> _shapeMeshCache = new Dictionary<int, Mesh>();
 
+    /// <summary>
+    /// DrawMeshInstanced用バッチサイズ（Unity上限1023）.
+    /// </summary>
+    private const int INSTANCED_BATCH_SIZE = 1023;
+
+    /// <summary>
+    /// 角数ごとのMatrix4x4バッファ.
+    /// </summary>
+    private Dictionary<int, Matrix4x4[]> _matrixBuffers = new Dictionary<int, Matrix4x4[]>();
+
+    /// <summary>
+    /// 角数ごとのエンティティインデックスリスト.
+    /// </summary>
+    private Dictionary<int, List<int>> _entityIndexByAngular = new Dictionary<int, List<int>>();
+
+    /// <summary>
+    /// インスタンス描画用マテリアル（GPUインスタンシング対応）.
+    /// </summary>
+    private Material _instancedMaterial;
+
     #endregion
 
     #region Data
@@ -117,6 +137,10 @@ public class AttackRenderingSystem : MonoBehaviour
         {
             Destroy(_defaultMaterial);
         }
+        if (_instancedMaterial != null)
+        {
+            Destroy(_instancedMaterial);
+        }
 
         // メッシュキャッシュクリア.
         foreach (var mesh in _shapeMeshCache.Values)
@@ -154,6 +178,23 @@ public class AttackRenderingSystem : MonoBehaviour
         // デフォルトマテリアル作成（Sprites/Default使用）.
         _defaultMaterial = new Material(Shader.Find("Sprites/Default"));
         _propertyBlock = new MaterialPropertyBlock();
+
+        // インスタンス描画用マテリアル（GPUインスタンシング対応シェーダーを検索）.
+        Shader instancedShader = Shader.Find("Unlit/Color");
+        if (instancedShader == null)
+        {
+            instancedShader = Shader.Find("Sprites/Default");
+        }
+        _instancedMaterial = new Material(instancedShader);
+        _instancedMaterial.enableInstancing = true;
+        _instancedMaterial.color = Color.white;
+
+        // 角数3〜12の事前バッファ確保.
+        for (int angular = 3; angular <= 12; angular++)
+        {
+            _matrixBuffers[angular] = new Matrix4x4[INSTANCED_BATCH_SIZE];
+            _entityIndexByAngular[angular] = new List<int>(INSTANCED_BATCH_SIZE);
+        }
     }
 
     #endregion
@@ -402,9 +443,90 @@ public class AttackRenderingSystem : MonoBehaviour
     }
 
     /// <summary>
-    /// エンティティ描画処理.
+    /// エンティティ描画処理（DrawMeshInstanced使用、フォールバック付き）.
     /// </summary>
     private void RenderEntities()
+    {
+        if (_instancedMaterial == null && _defaultMaterial == null) return;
+
+        // インスタンシングがサポートされているか確認.
+        bool useInstancing = _instancedMaterial != null &&
+                            _instancedMaterial.enableInstancing &&
+                            SystemInfo.supportsInstancing;
+
+        if (!useInstancing)
+        {
+            // フォールバック: 従来のDrawMesh.
+            RenderEntitiesFallback();
+            return;
+        }
+
+        // 角数ごとのインデックスリストをクリア.
+        foreach (var list in _entityIndexByAngular.Values)
+        {
+            list.Clear();
+        }
+
+        // エンティティを角数ごとにグループ化.
+        for (int i = 0; i < _maxEntities; i++)
+        {
+            if (!_entities[i].IsActive) continue;
+
+            int angular = _entities[i].ShapeAngular;
+
+            // バッファがない角数の場合は作成.
+            if (!_entityIndexByAngular.TryGetValue(angular, out var indexList))
+            {
+                _matrixBuffers[angular] = new Matrix4x4[INSTANCED_BATCH_SIZE];
+                _entityIndexByAngular[angular] = new List<int>(INSTANCED_BATCH_SIZE);
+                indexList = _entityIndexByAngular[angular];
+            }
+
+            indexList.Add(i);
+        }
+
+        // 角数ごとにバッチ描画.
+        foreach (var kvp in _entityIndexByAngular)
+        {
+            int angular = kvp.Key;
+            List<int> indices = kvp.Value;
+
+            if (indices.Count == 0) continue;
+
+            Mesh mesh = GetShapeMesh(angular);
+            Matrix4x4[] matrices = _matrixBuffers[angular];
+
+            // バッチ単位で描画.
+            int batchStart = 0;
+            while (batchStart < indices.Count)
+            {
+                int batchCount = Mathf.Min(INSTANCED_BATCH_SIZE, indices.Count - batchStart);
+
+                // Matrix4x4配列を構築.
+                for (int i = 0; i < batchCount; i++)
+                {
+                    int entityIdx = indices[batchStart + i];
+                    ref AttackEntityData entity = ref _entities[entityIdx];
+
+                    matrices[i] = Matrix4x4.TRS(
+                        new Vector3(entity.Position.x, entity.Position.y, 0f),
+                        Quaternion.Euler(0f, 0f, entity.Rotation * Mathf.Rad2Deg),
+                        new Vector3(entity.ShapeSize, entity.ShapeSize, 1f)
+                    );
+                }
+
+                // DrawMeshInstancedで一括描画.
+                Graphics.DrawMeshInstanced(mesh, 0, _instancedMaterial, matrices, batchCount, _propertyBlock);
+
+                batchStart += batchCount;
+            }
+        }
+    }
+
+    /// <summary>
+    /// フォールバック描画（従来のDrawMesh方式）.
+    /// </summary>
+    private void RenderEntitiesFallback()
     {
         if (_defaultMaterial == null) return;
 
@@ -414,20 +536,15 @@ public class AttackRenderingSystem : MonoBehaviour
 
             ref AttackEntityData entity = ref _entities[i];
 
-            // ShapeManagerからメッシュを取得.
             Mesh mesh = GetShapeMesh(entity.ShapeAngular);
 
-            // 変換行列作成.
             Matrix4x4 matrix = Matrix4x4.TRS(
                 new Vector3(entity.Position.x, entity.Position.y, 0f),
                 Quaternion.Euler(0f, 0f, entity.Rotation * Mathf.Rad2Deg),
                 new Vector3(entity.ShapeSize, entity.ShapeSize, 1f)
             );
 
-            // 色設定.
             _propertyBlock.SetColor("_Color", entity.Color);
-
-            // 描画.
             Graphics.DrawMesh(mesh, matrix, _defaultMaterial, 0, null, 0, _propertyBlock);
         }
     }
