@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using R3;
 using Unity.Mathematics;
 using UnityEngine;
@@ -50,7 +50,9 @@ public class Shape_Model_Player : Shape_Model_abstract
 
     void SetAll()
     {
-        // 表示・当たり判定を更新
+        // 表示・当たり判定を更新.
+        //(既)修:C:\Users\hukaw\Desktop\DF\private\2D_bloc\bloc\Assets\Script\Game\Character\Shape\ShapeUnitCirclePolygonManager.csにplayerが度の形状を設定したか記録されるようにして下さし
+        ShapeUnitCirclePolygonManager.Instance().SetPlayerShape(N_Angular);
         SetSprite();
         SetColl();
     }

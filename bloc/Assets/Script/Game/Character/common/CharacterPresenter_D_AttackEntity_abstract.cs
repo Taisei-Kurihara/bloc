@@ -15,6 +15,14 @@ public abstract class CharacterPresenter_D_AttackEntity_abstract : CharacterPres
     // 初期化済みかどうかのフラグ.
     public bool IsInitialized { get; private set; } = false;
 
+    /// <summary>
+    /// 初期化状態をリセットする（形状変更時などに再初期化を可能にする）.
+    /// </summary>
+    public void ResetInitializationState()
+    {
+        IsInitialized = false;
+    }
+
     // プールで使用するAttackEntityAdvent型.
     public Type PoolAdventType { get; set; }
 

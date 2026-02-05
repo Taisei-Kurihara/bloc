@@ -124,6 +124,7 @@ public class DynamicObjectController_Game_Default : Singleton_DestroyAvailableMo
         }
 
         // 既に登録済みの場合は設定を更新.
+        //修:形状変更の更新が正常に行われるようにしてください
         _poolSettings[adventType] = settings;
 
         // プールがない場合は作成.
@@ -131,6 +132,11 @@ public class DynamicObjectController_Game_Default : Singleton_DestroyAvailableMo
         {
             _attackPoolsByType_Unused[adventType] = new Queue<CharacterPresenter_D_AttackEntity_abstract>();
             _attackPoolsByType_InUse[adventType] = new List<CharacterPresenter_D_AttackEntity_abstract>();
+        }
+        else
+        {
+            // 既存プールがある場合、IsInitializedをリセットして新しい設定で再初期化されるようにする.
+            ResetPoolInitializationState(adventType);
         }
 
         Debug.Log($"[Game_Default] 攻撃プール登録: {adventType.Name}, 初期生成数: {settings.InitialCount}, 最大数: {settings.MaxCount}");
@@ -210,6 +216,37 @@ public class DynamicObjectController_Game_Default : Singleton_DestroyAvailableMo
             Debug.LogWarning("[Game_Default] Attack_Prefab に CharacterPresenter_D_AttackEntity_abstract がアタッチされていません.");
             GameObject.Destroy(attackObj);
         }
+    }
+
+    /// <summary>
+    /// 既存プールのIsInitializedをリセットして再初期化可能にする.
+    /// </summary>
+    /// <param name="adventType">AttackEntityAdvent_abstractの継承型.</param>
+    private void ResetPoolInitializationState(Type adventType)
+    {
+        int resetCount = 0;
+
+        // 未使用プールのリセット.
+        if (_attackPoolsByType_Unused.TryGetValue(adventType, out var unusedPool))
+        {
+            foreach (var entity in unusedPool)
+            {
+                entity.ResetInitializationState();
+                resetCount++;
+            }
+        }
+
+        // 使用中プールのリセット.
+        if (_attackPoolsByType_InUse.TryGetValue(adventType, out var inUseList))
+        {
+            foreach (var entity in inUseList)
+            {
+                entity.ResetInitializationState();
+                resetCount++;
+            }
+        }
+
+        Debug.Log($"[Game_Default] プール初期化状態リセット完了. 型: {adventType.Name}, リセット数: {resetCount}");
     }
 
     /// <summary>

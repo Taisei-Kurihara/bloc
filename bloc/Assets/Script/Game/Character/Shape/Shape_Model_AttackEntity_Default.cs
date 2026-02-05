@@ -22,12 +22,23 @@ public class Shape_Model_AttackEntity_Default : Shape_Model_AttackEntity_abstrac
 
     public override async UniTask SetShapeAsync(int nAngular)
     {
-        _shapeComp = await GetOrCreateShapeAsync(nAngular);
+        int playerNAngular = ShapeUnitCirclePolygonManager.Instance().PlayerCurrentNAngular;
+        _shapeComp = await GetOrCreateShapeAsync(playerNAngular);
         SetAll();
     }
 
     void SetAll()
     {
+        // 直接形状を指定した場合、その形状情報を保存.
+        if (_shapeComp != null)
+        {
+            var record = ShapeRecord;
+            if (record != null)
+            {
+                record.RecordedShapeComp = _shapeComp;
+            }
+        }
+
         // 表示・当たり判定を更新.
         SetSprite();
         SetColl();
@@ -61,7 +72,7 @@ public class Shape_Model_AttackEntity_Default : Shape_Model_AttackEntity_abstrac
         if (shape.length >= 24)
         {
             edgeCollider.points = new Vector2[2] { Vector2.zero, Vector2.zero };
-            circleCollider.isTrigger = false;
+            //circleCollider.isTrigger = false;
         }
         else
         {

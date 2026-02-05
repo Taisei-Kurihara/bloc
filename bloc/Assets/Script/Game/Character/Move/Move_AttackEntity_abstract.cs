@@ -37,9 +37,17 @@ public abstract class Move_AttackEntity_abstract : ModelBase, Move_interface
     /// <param name="speed">発射速度（省略時はFireSpeed使用）.</param>
     public virtual void Fire(Vector2 direction, float? speed = null)
     {
+        float addAngle = (shape.shape.length % 2 == 0) ? 360 / (shape.shape.length * 2) : 0;
+        float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
+        angle -= 90 + addAngle;
+        Debug.Log(angle);
+        rb.transform.rotation = Quaternion.Euler(0, 0, angle);
+
         if (rb == null) return;
+
         float fireSpeed = speed ?? FireSpeed;
         rb.linearVelocity = direction.normalized * fireSpeed;
+
     }
 
     /// <summary>

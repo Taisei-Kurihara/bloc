@@ -37,6 +37,9 @@ public abstract class AttackEntityAdvent_abstract : ModelBase
         _controller = DynamicObjectController_Game_Default.Instance();
         if (_controller == null) return;
 
+        // 形状変更時に最新のShapeを取得.
+        shape = presenter.Shape;
+
         // 攻撃プールを登録.
         Type adventType = this.GetType();
 
@@ -64,7 +67,8 @@ public abstract class AttackEntityAdvent_abstract : ModelBase
     {
         if (!_isInitialized || _controller == null) return;
 
-        // shapeのverticesとversizeを取得.
+        // 最新のshapeを取得（形状変更に対応）.
+        shape = presenter.Shape;
         if (shape == null || shape.shape == null) return;
 
         Vector2[] vertices = shape.shape.vertices;

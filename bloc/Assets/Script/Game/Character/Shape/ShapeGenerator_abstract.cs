@@ -131,3 +131,48 @@ public class ShapeCompStatus
         this.status = generator.shapeStatus;
     }
 }
+
+/// <summary>
+/// Shape_Model_abstractに対するShapeGenerator_abstractと角形情報を記録するクラス.
+/// </summary>
+public class ShapeRecordInfo
+{
+    /// <summary>
+    /// ShapeGenerator_abstractの型.
+    /// </summary>
+    public System.Type GeneratorType { get; private set; }
+
+    /// <summary>
+    /// 角形の数.
+    /// </summary>
+    public int NAngular { get; private set; }
+
+    /// <summary>
+    /// sceneをまたいで保持される可能性があるかどうか.
+    /// </summary>
+    public bool PersistsAcrossScenes { get; private set; }
+
+    /// <summary>
+    /// 記録済みのShapeCompStatus参照.
+    /// </summary>
+    public ShapeCompStatus RecordedShapeComp { get; set; }
+
+    public ShapeRecordInfo(System.Type generatorType, int nAngular, bool persistsAcrossScenes = false)
+    {
+        GeneratorType = generatorType;
+        NAngular = nAngular;
+        PersistsAcrossScenes = persistsAcrossScenes;
+        RecordedShapeComp = null;
+    }
+
+    /// <summary>
+    /// 記録情報を更新する.
+    /// </summary>
+    public void UpdateRecord(System.Type generatorType, int nAngular, bool persistsAcrossScenes, ShapeCompStatus shapeComp)
+    {
+        GeneratorType = generatorType;
+        NAngular = nAngular;
+        PersistsAcrossScenes = persistsAcrossScenes;
+        RecordedShapeComp = shapeComp;
+    }
+}
