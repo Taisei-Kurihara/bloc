@@ -7,7 +7,11 @@ public enum ContactType
     None,
     Player,
     Enemy,
+    NPC,
     Bullet,
+    Attack,
+    Support,
+    Guard,
     Item,
     Wall,
     Ground,
@@ -49,21 +53,35 @@ public abstract class Contact_abstract : MonoBehaviour
         rb.OnTriggerEnter2DAsObservable()
             .Subscribe(collider =>
             {
+                // IStatusProviderインターフェースでStatusを取得.
+                IStatusProvider statusProvider = collider.GetComponent<IStatusProvider>();
+                IStatus_base status = statusProvider?.Status;
+                ContactType contactType = ContactType.None;
+
+                if (status != null)
+                {
+                    contactType = status.masterHitstatus;
+                }
+
                 // 相手の Layer 名称を取得
                 string otherLayerName = LayerMask.LayerToName(collider.gameObject.layer);
 
                 // ResponseTargets の enum 名称と比較
                 foreach (var target in ResponseTargets)
                 {
-                    if (target.ToString() == otherLayerName)
+                    // Status_abstractがある場合はmasterHitstatusで判定、ない場合はLayerNameで判定.
+                    bool isMatch = (status != null && target == contactType) ||
+                                   (status == null && target.ToString() == otherLayerName);
+
+                    if (isMatch)
                     {
-                        Debug.Log($"Contact with {otherLayerName}");
+                        Debug.Log($"Contact with {otherLayerName} (ContactType: {contactType})");
                         Contact(collider);
                         return;
                     }
                 }
 
-                Debug.Log($"No Contact with {otherLayerName}");
+                Debug.Log($"No Contact with {otherLayerName} (ContactType: {contactType})");
             })
             .AddTo(this);
     }

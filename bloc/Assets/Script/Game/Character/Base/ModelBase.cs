@@ -4,9 +4,9 @@ using UnityEngine;
 
 public abstract class ModelBase : IModelBase
 {
-    protected PresenterBase presenter;
+    protected CharacterPresenterBase presenter;
 
-    protected ModelBase(PresenterBase presenter)
+    protected ModelBase(CharacterPresenterBase presenter)
     {
         this.presenter = presenter;
     }

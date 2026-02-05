@@ -2,6 +2,7 @@
 // DynamicObjectController_Lv1_Lesson1.cs
 // Lv1_Lesson1 専用コントローラー
 // ==========================
+using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 using InGame;
 using R3;
@@ -27,13 +28,12 @@ public class DynamicObjectController_Lv1_Lesson1 : DynamicObjectController_inter
     GameObject UI_mono_Button_minus;
     GameObject UI_mono_Button_plus;
 
-    
+    public SceneControllerType ControllerType => SceneControllerType.CurrentSceneOnly;
+    public List<DynamicObjectController_interface> ChildControllers => new List<DynamicObjectController_interface> { DynamicObjectController_Game_Default.Instance() };
+    public List<AddressableAssetAddress> LoadedAssetAddresses => new List<AddressableAssetAddress> { AddressableAssetAddress.UI_worldPos_Text, AddressableAssetAddress.UI_mono_Button };
 
     public async UniTask OnSceneLoadedAsync()
     {
-        Debug.Log("[Lv1_Lesson1] OnSceneLoadedAsync 開始");
-        await DynamicObjectController_Game_Default.Instance().OnSceneLoadedAsync();
-
         // UI プレハブロード
         UI_worldPos_Text = await DynamicObjectManager.Instance().LoadAssetAsync<GameObject>("UI_worldPos_Text");
         if (UI_worldPos_Text == null)
@@ -105,12 +105,12 @@ public class DynamicObjectController_Lv1_Lesson1 : DynamicObjectController_inter
         GameObject Player_Instance = DynamicObjectController_Game_Default.Instance().GetPlayer_Instance;
         Debug.Log("[Lv1_Lesson1] Player_Instance 取得完了");
 
-        var presenter = Player_Instance.GetComponent<Player_Presenter>();
+        var presenter = Player_Instance.GetComponent<CharacterPresenter_A_Player>();
         Debug.Log("[Lv1_Lesson1] Player_Presenter 取得待機中");
         await UniTask.WaitUntil(() => presenter != null && presenter.Move != null);
         Debug.Log("[Lv1_Lesson1] Player_Presenter 取得完了");
 
-        var moveRotateOnGrounded = presenter.Move as Move_Rotate_OnGrounded;
+        var moveRotateOnGrounded = presenter.Move as Move_Rotate_OnGrounded_PlayerInput;
         if (moveRotateOnGrounded == null)
         {
             Debug.LogError("[Lv1_Lesson1] Move is not Move_Rotate_OnGrounded");
@@ -297,7 +297,7 @@ public class DynamicObjectController_Lv1_Lesson1 : DynamicObjectController_inter
         GameObject Player_Instance = DynamicObjectController_Game_Default.Instance().GetPlayer_Instance;
         if (Player_Instance != null)
         {
-            var presenter = Player_Instance.GetComponent<Player_Presenter>();
+            var presenter = Player_Instance.GetComponent<CharacterPresenter_A_Player>();
             if (presenter != null)
             {
                 presenter.ShapeSet(shape);
@@ -323,7 +323,6 @@ public class DynamicObjectController_Lv1_Lesson1 : DynamicObjectController_inter
 
     public async UniTask OnFadeCompletedAsync()
     {
-        await DynamicObjectController_Game_Default.Instance().OnFadeCompletedAsync();
     }
 
 

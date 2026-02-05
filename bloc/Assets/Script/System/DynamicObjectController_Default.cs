@@ -2,11 +2,15 @@
 // DynamicObjectController_Default.cs
 // デフォルトコントローラー
 // ==========================
+using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 
 public class DynamicObjectController_Default : DynamicObjectController_interface
 {
+    public SceneControllerType ControllerType => SceneControllerType.OutGame;
+    public List<DynamicObjectController_interface> ChildControllers => new List<DynamicObjectController_interface>();
+    public List<AddressableAssetAddress> LoadedAssetAddresses => new List<AddressableAssetAddress>();
     public async UniTask OnBeforeFadeLoadAsync()
     {
         await UniTask.CompletedTask;

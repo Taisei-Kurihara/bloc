@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 // -----------------------------
-// SaveData\‘¢iƒZ[ƒu“à—e‚ğ’è‹`j
+// SaveDataæ§‹é€ ï¼ˆã‚»ãƒ¼ãƒ–å†…å®¹ã‚’å®šç¾©ï¼‰
 // -----------------------------
 [System.Serializable]
 public class SaveData_PlayerItem : SaveData_A_A_interface
@@ -13,14 +13,14 @@ public class SaveData_PlayerItem : SaveData_A_A_interface
 }
 
 // -----------------------------
-// ƒZ[ƒuƒNƒ‰ƒX–{‘Ì
+// ã‚»ãƒ¼ãƒ–ã‚¯ãƒ©ã‚¹æœ¬ä½“
 // -----------------------------
 public class Save_A_D_PlayerItem : Save_A_B_abstract<SaveData_PlayerItem>
 {
-    // ƒtƒ@ƒCƒ‹–¼iŠg’£qœ‚­j
+    // ãƒ•ã‚¡ã‚¤ãƒ«åï¼ˆæ‹¡å¼µå­é™¤ãï¼‰
     public override string SaveDataName => "PlayerItem";
 
-    // ÀÛ‚ÉƒZ[ƒu‚·‚éƒf[ƒ^
+    // å®Ÿéš›ã«ã‚»ãƒ¼ãƒ–ã™ã‚‹ãƒ‡ãƒ¼ã‚¿
     public override SaveData_PlayerItem SaveData { get; set; }
 
 

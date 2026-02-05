@@ -33,6 +33,7 @@ MonoBehaviour:
   m_UniqueBundleIds: 0
   m_EnableJsonCatalog: 0
   m_NonRecursiveBuilding: 1
+  m_AllowNestedBundleFolders: 0
   m_CCDEnabled: 0
   m_maxConcurrentWebRequests: 3
   m_UseUWRForLocalBundles: 0
@@ -64,6 +65,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: c35df3dd013dfc441938f6ee07bced5f, type: 2}
   - {fileID: 11400000, guid: 64e49d75746ec8945969d83e3129142b, type: 2}
   - {fileID: 11400000, guid: 9dc1b34549e2bff42b8fa1077bc67133, type: 2}
+  - {fileID: 11400000, guid: 0958e455c8675144cace0390abc6b1ad, type: 2}
   - {fileID: 11400000, guid: 81781ad89f53a4549ac93ff64b853f7b, type: 2}
   m_BuildSettings:
     m_LogResourceManagerExceptions: 1

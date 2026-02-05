@@ -5,13 +5,13 @@ using UnityEngine.UI;
 
 public class StartButton : MonoBehaviour
 {
-    // ‘JˆÚæ‚ÌƒV[ƒ“
+    // é·ç§»å…ˆã®ã‚·ãƒ¼ãƒ³
     [SerializeField]
     UseScene useScene = UseScene.Game_C_Lv1_Lesson1;
 
     /// <summary>
-    /// ‰Šú‰»ˆ—
-    /// ƒ{ƒ^ƒ“ƒRƒ“ƒ|[ƒlƒ“ƒg‚ÉƒNƒŠƒbƒNƒCƒxƒ“ƒg‚ğ“o˜^‚·‚é
+    /// åˆæœŸåŒ–å‡¦ç†
+    /// ãƒœã‚¿ãƒ³ã‚³ãƒ³ãƒãƒ¼ãƒãƒ³ãƒˆã«ã‚¯ãƒªãƒƒã‚¯ã‚¤ãƒ™ãƒ³ãƒˆã‚’ç™»éŒ²ã™ã‚‹
     /// </summary>
     private void Awake()
     {
@@ -22,8 +22,8 @@ public class StartButton : MonoBehaviour
     }
 
     /// <summary>
-    /// ƒ{ƒ^ƒ“ƒNƒŠƒbƒN‚Ìˆ—
-    /// w’è‚³‚ê‚½ƒV[ƒ“‚Ö‚Ì‘JˆÚ‚ğÀs‚·‚é
+    /// ãƒœã‚¿ãƒ³ã‚¯ãƒªãƒƒã‚¯æ™‚ã®å‡¦ç†
+    /// æŒ‡å®šã•ã‚ŒãŸã‚·ãƒ¼ãƒ³ã¸ã®é·ç§»ã‚’å®Ÿè¡Œã™ã‚‹
     /// </summary>
     void Onclick()
     {

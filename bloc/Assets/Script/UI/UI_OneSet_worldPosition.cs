@@ -39,7 +39,7 @@ public class UI_OneSet_worldPosition : UI_OneSet_abstract
 
     protected async UniTask PosUpdate()
     {
-        while (true)
+        while (this != null && gameObject != null)
         {
             // 自動削除時間のチェック.
             if (AutoDestroyTime > 0f && Time.time - startTime >= AutoDestroyTime)
@@ -57,6 +57,9 @@ public class UI_OneSet_worldPosition : UI_OneSet_abstract
     // ワールド座標からスクリーン座標に変換してUIを配置する関数.
     protected void UpdatePosition()
     {
+        if (rectTransform == null || Camera.main == null)
+            return;
+
         Vector3 screenPos = Camera.main.WorldToScreenPoint(worldPos);
         rectTransform.position = screenPos;
     }
